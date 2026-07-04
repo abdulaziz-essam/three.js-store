@@ -1,25 +1,25 @@
 import { GAMES } from '../../data/games'
-import GamePedestal from './GamePedestal'
+import { useStore } from '../../hooks/useStore'
+import GameDisplay from './GameDisplay'
 
-// Two rows of pedestals along the sides
-const PEDESTAL_POSITIONS = [
-  [-4.0, 0, -9],
-  [-4.0, 0, -4],
-  [-4.0, 0,  1],
-  [ 4.0, 0, -9],
-  [ 4.0, 0, -4],
-  [ 4.0, 0,  1],
+// 2 rows of 4 displays in the center aisle
+const POSITIONS = [
+  [-3.5, 0, -8], [-1.0, 0, -8], [1.5, 0, -8], [4.0, 0, -8],
+  [-3.5, 0, -2], [-1.0, 0, -2], [1.5, 0, -2], [4.0, 0, -2],
 ]
 
 export default function ShopFloor() {
+  const selectedPlatform = useStore((s) => s.selectedPlatform)
+  const selectedGenre = useStore((s) => s.selectedGenre)
+
+  const filtered = GAMES.filter(
+    (g) => g.platform.includes(selectedPlatform) && g.genre === selectedGenre
+  )
+
   return (
     <group>
-      {GAMES.map((game, i) => (
-        <GamePedestal
-          key={game.id}
-          game={game}
-          position={PEDESTAL_POSITIONS[i]}
-        />
+      {filtered.map((game, i) => (
+        <GameDisplay key={game.id} game={game} position={POSITIONS[i]} />
       ))}
     </group>
   )

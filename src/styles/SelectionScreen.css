@@ -1,0 +1,193 @@
+.sel-overlay {
+  position: fixed;
+  inset: 0;
+  background: #06060f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.sel-scanlines {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 238, 255, 0.015) 2px,
+    rgba(0, 238, 255, 0.015) 4px
+  );
+  pointer-events: none;
+}
+
+.sel-card {
+  position: relative;
+  width: 560px;
+  max-width: 95vw;
+  background: linear-gradient(135deg, #08081a 0%, #06060f 100%);
+  border: 1px solid #1a1a2e;
+  border-radius: 10px;
+  padding: 44px 40px 36px;
+  box-shadow: 0 0 80px rgba(0, 238, 255, 0.08), 0 0 160px rgba(0, 238, 255, 0.04);
+}
+
+/* Neon corners */
+.sel-corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: #00eeff;
+  border-style: solid;
+}
+.sel-corner.tl { top: 10px; left: 10px;  border-width: 2px 0 0 2px; }
+.sel-corner.tr { top: 10px; right: 10px; border-width: 2px 2px 0 0; }
+.sel-corner.bl { bottom: 10px; left: 10px;  border-width: 0 0 2px 2px; }
+.sel-corner.br { bottom: 10px; right: 10px; border-width: 0 2px 2px 0; }
+
+.sel-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: #4a4a6a;
+  margin-bottom: 8px;
+}
+
+.sel-title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #00eeff;
+  text-shadow: 0 0 30px #00eeff, 0 0 60px #00eeff44;
+  margin-bottom: 6px;
+}
+
+.sel-subtitle {
+  font-size: 12px;
+  color: #4a4a6a;
+  letter-spacing: 0.1em;
+  margin-bottom: 32px;
+}
+
+.sel-section-label {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: #ff00aa;
+  text-shadow: 0 0 10px #ff00aa;
+  margin-bottom: 12px;
+}
+
+/* Device buttons */
+.sel-device-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.sel-device-btn {
+  flex: 1;
+  min-width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  background: transparent;
+  border: 1px solid #1a1a2e;
+  border-radius: 8px;
+  color: #4a4a6a;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.sel-device-btn.active {
+  border-color: #00eeff;
+  color: #00eeff;
+  background: rgba(0, 238, 255, 0.06);
+  box-shadow: 0 0 20px rgba(0, 238, 255, 0.2);
+}
+
+.sel-device-btn.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.sel-device-icon {
+  font-size: 24px;
+}
+
+/* Genre chips */
+.sel-genre-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.sel-genre-btn {
+  padding: 7px 16px;
+  background: transparent;
+  border: 1px solid #1a1a2e;
+  border-radius: 20px;
+  color: #4a4a6a;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.sel-genre-btn.active {
+  border-color: #aa00ff;
+  color: #aa00ff;
+  background: rgba(170, 0, 255, 0.08);
+  box-shadow: 0 0 14px rgba(170, 0, 255, 0.25);
+}
+
+.sel-genre-btn.disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+/* Match count */
+.sel-match-text {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #4a4a6a;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+/* Enter button */
+.sel-enter-btn {
+  width: 100%;
+  padding: 15px;
+  border-radius: 6px;
+  border: 2px solid;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.sel-enter-btn.active {
+  border-color: #00eeff;
+  color: #00eeff;
+  text-shadow: 0 0 10px #00eeff88;
+  box-shadow: 0 0 25px rgba(0, 238, 255, 0.2);
+}
+
+.sel-enter-btn.inactive {
+  border-color: #1a1a2e;
+  color: #2a2a4a;
+  cursor: not-allowed;
+}

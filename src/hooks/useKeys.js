@@ -2,10 +2,9 @@ import { useEffect, useRef } from 'react'
 
 export function useKeys() {
   const keys = useRef({})
-
   useEffect(() => {
     const down = (e) => { keys.current[e.code] = true }
-    const up = (e) => { keys.current[e.code] = false }
+    const up   = (e) => { keys.current[e.code] = false }
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
     return () => {
@@ -13,6 +12,5 @@ export function useKeys() {
       window.removeEventListener('keyup', up)
     }
   }, [])
-
   return keys
 }
