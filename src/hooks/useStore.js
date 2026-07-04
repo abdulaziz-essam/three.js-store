@@ -7,6 +7,8 @@ export const useStore = create((set, get) => ({
   selected: null,
   nearbyGame: null,
   nearbyCounter: false,
+  nearbyShelf: null,   // { id, position, rotation } of shelf player is near
+  shelfFocus: null,    // same shape — set when camera is zoomed into a shelf
   shopOpen: false,
   checkoutOpen: false,
   toast: null,
@@ -17,6 +19,9 @@ export const useStore = create((set, get) => ({
 
   setNearbyGame: (game) => set({ nearbyGame: game }),
   setNearbyCounter: (val) => set({ nearbyCounter: val }),
+  setNearbyShelf: (shelf) => set({ nearbyShelf: shelf }),
+  focusShelf: (shelf) => set({ shelfFocus: shelf }),
+  unfocusShelf: () => set({ shelfFocus: null }),
   selectGame: (game) => set({ selected: game, shopOpen: true }),
   closeShop: () => set({ shopOpen: false }),
   openCheckout: () => set({ checkoutOpen: true }),

@@ -1,8 +1,8 @@
 import { useStore } from '../../hooks/useStore'
 
 export default function HUD() {
-  const { balance, owned, nearbyGame, nearbyCounter, shopOpen, checkoutOpen, filterOpen, introComplete, cart, toast, selectedPlatform, selectedGenre } = useStore()
-  const modalOpen = shopOpen || checkoutOpen || filterOpen
+  const { balance, owned, nearbyGame, nearbyCounter, nearbyShelf, shelfFocus, shopOpen, checkoutOpen, filterOpen, introComplete, cart, toast, selectedPlatform, selectedGenre } = useStore()
+  const modalOpen = shopOpen || checkoutOpen || filterOpen || shelfFocus
   if (!introComplete) return (
     <div className="hud-skip">Press any key to skip</div>
   )
@@ -37,7 +37,10 @@ export default function HUD() {
           {nearbyCounter && cart.length === 0 && (
             <span className="hud-counter">Counter — Add games to basket first</span>
           )}
-          {!nearbyCounter && nearbyGame && (
+          {!nearbyCounter && nearbyShelf && !nearbyGame && (
+            <span className="hud-interact pulse">[ E ] Browse Shelf</span>
+          )}
+          {!nearbyCounter && !nearbyShelf && nearbyGame && (
             <span className="hud-interact pulse">[ E ] View {nearbyGame.title}</span>
           )}
         </div>

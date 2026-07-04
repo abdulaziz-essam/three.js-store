@@ -7,6 +7,7 @@ import HUD from './components/UI/HUD'
 import ShopModal from './components/UI/ShopModal'
 import CheckoutModal from './components/UI/CheckoutModal'
 import FilterPanel from './components/UI/FilterPanel'
+import ShelfModal from './components/UI/ShelfModal'
 import './App.css'
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
       </Canvas>
       <HUD />
       <FilterPanel />
+      <ShelfModal />
       <ShopModal />
       <CheckoutModal />
     </>
