@@ -13,7 +13,9 @@ export default function ShopFloor() {
   const selectedGenre = useStore((s) => s.selectedGenre)
 
   const filtered = GAMES.filter(
-    (g) => g.platform.includes(selectedPlatform) && g.genre === selectedGenre
+    (g) =>
+      (!selectedPlatform || g.platform.includes(selectedPlatform)) &&
+      (!selectedGenre || g.genre === selectedGenre)
   )
 
   return (

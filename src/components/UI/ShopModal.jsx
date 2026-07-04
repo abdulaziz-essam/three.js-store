@@ -1,12 +1,12 @@
 import { useStore } from '../../hooks/useStore'
 
 export default function ShopModal() {
-  const { shopOpen, selected, closeShop, purchase, owned, balance } = useStore()
+  const { shopOpen, selected, closeShop, addToCart, owned, balance, cart } = useStore()
   if (!shopOpen || !selected) return null
 
   const game = selected
   const isOwned = owned.has(game.id)
-  const canAfford = balance >= game.price
+  const inCart = cart.some(g => g.id === game.id)
 
   return (
     <div className="modal-overlay" onClick={closeShop}>
@@ -48,12 +48,16 @@ export default function ShopModal() {
             </div>
 
             <button
-              className={`modal-btn ${isOwned ? 'owned' : !canAfford ? 'broke' : ''}`}
-              disabled={isOwned || !canAfford}
-              onClick={() => purchase(game)}
+              className={`modal-btn ${isOwned ? 'owned' : inCart ? 'in-cart' : ''}`}
+              disabled={isOwned || inCart}
+              onClick={() => { addToCart(game); closeShop() }}
             >
-              {isOwned ? '✓ IN YOUR LIBRARY' : !canAfford ? '✗ NOT ENOUGH CREDITS' : `BUY NOW — $${game.price}`}
+              {isOwned ? '✓ IN YOUR LIBRARY' : inCart ? '✓ IN BASKET' : `ADD TO BASKET — $${game.price}`}
             </button>
+
+            {!isOwned && !inCart && (
+              <div className="modal-hint">Walk to the counter to pay</div>
+            )}
           </div>
         </div>
 
