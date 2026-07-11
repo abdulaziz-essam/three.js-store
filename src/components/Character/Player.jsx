@@ -11,7 +11,7 @@ const POSITIONS = [
   [-3.5, 0, -2], [-1.0, 0, -2], [1.5, 0, -2], [4.0, 0, -2],
 ]
 
-const SPEED = 9
+const SPEED = 18
 const CAM_DIST = 5
 const CAM_HEIGHT = 2.8
 const BOUNDS = { x: 7.5, zMin: -11.5, zMax: 11.5 }

@@ -401,17 +401,6 @@ export default function Building() {
         <meshStandardMaterial {...wallTex} color="#1a1a24" roughness={0.88} />
       </mesh>
 
-      {/* ── RED ACCENT STRIPES (replaces casino neons) ── */}
-      {/* Left wall — horizontal red stripe at mid-height */}
-      <WallStripe start={[-hw + 0.2, 2.6, -hd + 0.5]} end={[-hw + 0.2, 2.6,  hd - 0.5]} color={COL.red} />
-      {/* Right wall */}
-      <WallStripe start={[ hw - 0.2, 2.6, -hd + 0.5]} end={[ hw - 0.2, 2.6,  hd - 0.5]} color={COL.red} />
-      {/* Back wall — red stripe under sign */}
-      <WallStripe start={[-hw + 0.5, 2.6, -hd + 0.2]} end={[ hw - 0.5, 2.6, -hd + 0.2]} color={COL.red} />
-      {/* Floor baseboard blue stripe left */}
-      <WallStripe start={[-hw + 0.2, 0.12, -hd + 0.5]} end={[-hw + 0.2, 0.12,  hd - 0.5]} color={COL.blue} />
-      {/* Floor baseboard blue stripe right */}
-      <WallStripe start={[ hw - 0.2, 0.12, -hd + 0.5]} end={[ hw - 0.2, 0.12,  hd - 0.5]} color={COL.blue} />
 
       {/* ── FLUORESCENT CEILING STRIPS ── */}
       {[

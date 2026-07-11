@@ -15,6 +15,7 @@ export const useStore = create((set, get) => ({
   selectedPlatform: 'pc',
   selectedGenre: null,
   introComplete: false,
+  introStep: 0,
   filterOpen: false,
 
   setNearbyGame: (game) => set({ nearbyGame: game }),
@@ -26,6 +27,11 @@ export const useStore = create((set, get) => ({
   closeShop: () => set({ shopOpen: false }),
   openCheckout: () => set({ checkoutOpen: true }),
   closeCheckout: () => set({ checkoutOpen: false }),
+  nextIntroStep: (total) => set(s =>
+    s.introStep + 1 >= total
+      ? { introComplete: true }
+      : { introStep: s.introStep + 1 }
+  ),
   completeIntro: () => set({ introComplete: true }),
   openFilter: () => set({ filterOpen: true }),
   closeFilter: () => set({ filterOpen: false }),

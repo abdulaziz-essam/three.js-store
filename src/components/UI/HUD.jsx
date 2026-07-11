@@ -1,11 +1,14 @@
 import { useStore } from '../../hooks/useStore'
+import IntroOverlay from './Intro/IntroOverlay'
 
 export default function HUD() {
-  const { balance, owned, nearbyGame, nearbyCounter, nearbyShelf, shelfFocus, shopOpen, checkoutOpen, filterOpen, introComplete, cart, toast, selectedPlatform, selectedGenre } = useStore()
+  const { balance, owned, nearbyGame, nearbyCounter, nearbyShelf, shelfFocus,
+          shopOpen, checkoutOpen, filterOpen, introComplete,
+          cart, toast, selectedPlatform, selectedGenre } = useStore()
+
+  if (!introComplete) return <IntroOverlay />
+
   const modalOpen = shopOpen || checkoutOpen || filterOpen || shelfFocus
-  if (!introComplete) return (
-    <div className="hud-skip">Press any key to skip</div>
-  )
 
   return (
     <>
@@ -30,7 +33,11 @@ export default function HUD() {
         <div className="hud-controls">
           <span>WASD — Move</span>
           <span>Mouse — Look</span>
-          <span className="hud-filter-hint">[ F ] Filter{selectedPlatform ? ` · ${selectedPlatform.toUpperCase()}` : ''}{selectedGenre ? ` · ${selectedGenre}` : ''}</span>
+          <span className="hud-filter-hint">
+            [ F ] Filter
+            {selectedPlatform ? ` · ${selectedPlatform.toUpperCase()}` : ''}
+            {selectedGenre ? ` · ${selectedGenre}` : ''}
+          </span>
           {nearbyCounter && cart.length > 0 && (
             <span className="hud-interact pulse">[ E ] Checkout ({cart.length} items)</span>
           )}
