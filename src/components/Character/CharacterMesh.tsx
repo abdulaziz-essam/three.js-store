@@ -1,16 +1,17 @@
+interface CharacterMeshProps {
+  soleColor?: string
+  shirtColor?: string
+  pantColor?: string
+  skinColor?: string
+  hairColor?: string
+  badge?: boolean
+  badgeColor?: string
+  logoStrip?: boolean
+}
+
 /**
  * Reusable blocky character mesh.
  * All measurements are in local space — parent group sets position/rotation.
- *
- * Props:
- *   soleColor   — neon color for shoe soles  (default cyan)
- *   shirtColor  — hoodie / shirt color        (default dark blue)
- *   pantColor   — trouser color               (default dark jeans)
- *   skinColor   — face/head skin color        (default warm brown)
- *   hairColor   — hair block color            (default near-black)
- *   badge       — show name badge (boolean)   (default false)
- *   badgeColor  — badge neon color            (default pink)
- *   logoStrip   — show hoodie logo strip      (default true)
  */
 export default function CharacterMesh({
   soleColor  = '#00eeff',
@@ -21,7 +22,7 @@ export default function CharacterMesh({
   badge      = false,
   badgeColor = '#ff00aa',
   logoStrip  = true,
-}) {
+}: CharacterMeshProps) {
   return (
     <>
       {/* Sneakers */}

@@ -1,7 +1,6 @@
 import { useStore } from '../../hooks/useStore'
 import { GAMES } from '../../data/games'
 
-// Same shelf-to-games mapping as Building.jsx
 const SHELF_GAMES = GAMES.slice(0, 9)
 
 export default function ShelfModal() {
@@ -10,7 +9,6 @@ export default function ShelfModal() {
 
   return (
     <div className="shelf-overlay">
-      {/* Back button top-left */}
       <button className="shelf-back" onClick={unfocusShelf}>
         ← BACK
       </button>
@@ -33,7 +31,7 @@ export default function ShelfModal() {
                 key={game.id}
                 className={`shelf-game-card ${disabled ? 'shelf-game-disabled' : ''}`}
                 onClick={() => !disabled && addToCart(game)}
-                style={{ '--g': game.color }}
+                style={{ '--g': game.color } as React.CSSProperties}
               >
                 <div className="shelf-game-img-wrap">
                   <img
@@ -41,8 +39,9 @@ export default function ShelfModal() {
                     alt={game.title}
                     className="shelf-game-img"
                     onError={e => {
-                      e.target.style.display = 'none'
-                      e.target.nextSibling.style.display = 'flex'
+                      const img = e.currentTarget
+                      img.style.display = 'none';
+                      (img.nextSibling as HTMLElement | null)?.style && ((img.nextSibling as HTMLElement).style.display = 'flex')
                     }}
                   />
                   <div

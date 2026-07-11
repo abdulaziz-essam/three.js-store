@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react'
 
 export function useKeys() {
-  const keys = useRef({})
+  const keys = useRef<Record<string, boolean>>({})
   useEffect(() => {
-    const down = (e) => { keys.current[e.code] = true }
-    const up   = (e) => { keys.current[e.code] = false }
+    const down = (e: KeyboardEvent) => { keys.current[e.code] = true }
+    const up   = (e: KeyboardEvent) => { keys.current[e.code] = false }
     window.addEventListener('keydown', down)
     window.addEventListener('keyup', up)
     return () => {
@@ -15,7 +15,7 @@ export function useKeys() {
   return keys
 }
 
-export function getDirectionInput(keys) {
+export function getDirectionInput(keys: Record<string, boolean>) {
   return {
     up:    keys['KeyW'] || keys['ArrowUp'],
     down:  keys['KeyS'] || keys['ArrowDown'],

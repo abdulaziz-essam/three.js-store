@@ -13,13 +13,13 @@ export default function IntroOverlay() {
   const isLast        = introStep === INTRO_STOPS.length - 1
 
   useEffect(() => {
-    const onKey = (e) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') completeIntro()
       else nextIntroStep(INTRO_STOPS.length)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [introStep])
+  }, [introStep, completeIntro, nextIntroStep])
 
   return (
     <div className="intro-overlay" key={introStep}>
@@ -40,7 +40,7 @@ export default function IntroOverlay() {
           {isLast ? (
             <button
               className="intro-btn intro-btn-enter"
-              style={{ '--accent': stop.accent }}
+              style={{ '--accent': stop.accent } as React.CSSProperties}
               onClick={completeIntro}
             >
               Enter Store
@@ -48,7 +48,7 @@ export default function IntroOverlay() {
           ) : (
             <button
               className="intro-btn intro-btn-next"
-              style={{ '--accent': stop.accent }}
+              style={{ '--accent': stop.accent } as React.CSSProperties}
               onClick={() => nextIntroStep(INTRO_STOPS.length)}
             >
               Next

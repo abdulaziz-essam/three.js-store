@@ -5,8 +5,9 @@ import { useKeys, getDirectionInput } from '../../hooks/useKeys'
 import { useStore } from '../../hooks/useStore'
 import { GAMES, matchesActiveFilters } from '../../data/games'
 import CharacterMesh from './CharacterMesh'
+import type { Group } from 'three'
 
-const POSITIONS = [
+const POSITIONS: [number, number, number][] = [
   [-3.5, 0, -8], [-1.0, 0, -8], [1.5, 0, -8], [4.0, 0, -8],
   [-3.5, 0, -2], [-1.0, 0, -2], [1.5, 0, -2], [4.0, 0, -2],
 ]
@@ -16,23 +17,22 @@ const CAM_DIST = 5
 const CAM_HEIGHT = 2.8
 const BOUNDS = { x: 7.5, zMin: -11.5, zMax: 11.5 }
 const INTERACT_DIST = 2.6
-const COUNTER_POS = [0, 0, -10]
+const COUNTER_POS: [number, number, number] = [0, 0, -10]
 const COUNTER_DIST = 3.5
 const SHELF_DIST = 2.8
 
-// Shelf units: position, which side (for camera placement), id
 const SHELVES = [
-  { id: 'L0', pos: [-7.5, 0, -8], side: 'left'  },
-  { id: 'L1', pos: [-7.5, 0, -3], side: 'left'  },
-  { id: 'L2', pos: [-7.5, 0,  3], side: 'left'  },
-  { id: 'R0', pos: [ 7.5, 0, -8], side: 'right' },
-  { id: 'R1', pos: [ 7.5, 0, -3], side: 'right' },
-  { id: 'R2', pos: [ 7.5, 0,  3], side: 'right' },
+  { id: 'L0', pos: [-7.5, 0, -8] as [number, number, number], side: 'left'  as const },
+  { id: 'L1', pos: [-7.5, 0, -3] as [number, number, number], side: 'left'  as const },
+  { id: 'L2', pos: [-7.5, 0,  3] as [number, number, number], side: 'left'  as const },
+  { id: 'R0', pos: [ 7.5, 0, -8] as [number, number, number], side: 'right' as const },
+  { id: 'R1', pos: [ 7.5, 0, -3] as [number, number, number], side: 'right' as const },
+  { id: 'R2', pos: [ 7.5, 0,  3] as [number, number, number], side: 'right' as const },
 ]
 
-function lerp(a, b, t) { return a + (b - a) * t }
+function lerp(a: number, b: number, t: number) { return a + (b - a) * t }
 
-function getMovementVector(keys, yaw) {
+function getMovementVector(keys: Record<string, boolean>, yaw: number) {
   const cameraForward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw))
   const cameraRight   = new THREE.Vector3( Math.cos(yaw), 0, -Math.sin(yaw))
   const direction = new THREE.Vector3()
@@ -45,17 +45,14 @@ function getMovementVector(keys, yaw) {
   return direction
 }
 
-// Camera target when focused on a shelf
-function getShelfCamTarget(shelf) {
+function getShelfCamTarget(shelf: typeof SHELVES[number]) {
   const [sx, , sz] = shelf.pos
   if (shelf.side === 'left') {
-    // Stand to the right of the left-wall shelf, look left at it
     return {
       camPos: new THREE.Vector3(sx + 3.2, 1.6, sz),
       lookAt: new THREE.Vector3(sx + 0.5, 1.4, sz),
     }
   } else {
-    // Stand to the left of the right-wall shelf, look right at it
     return {
       camPos: new THREE.Vector3(sx - 3.2, 1.6, sz),
       lookAt: new THREE.Vector3(sx - 0.5, 1.4, sz),
@@ -64,7 +61,7 @@ function getShelfCamTarget(shelf) {
 }
 
 export default function Player() {
-  const groupRef = useRef()
+  const groupRef = useRef<Group>(null)
   const keys = useKeys()
   const { camera } = useThree()
   const setNearbyGame    = useStore(s => s.setNearbyGame)
@@ -88,7 +85,7 @@ export default function Player() {
   const camYaw = useRef(Math.PI)
 
   useEffect(() => {
-    const onMove = (e) => {
+    const onMove = (e: MouseEvent) => {
       if (shopOpen || shelfFocus) return
       camYaw.current -= e.movementX * 0.003
     }
@@ -104,8 +101,7 @@ export default function Player() {
   }, [shopOpen, shelfFocus])
 
   useEffect(() => {
-    const onKey = (e) => {
-      // ESC always exits shelf focus first
+    const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Escape') {
         const { shelfFocus } = useStore.getState()
         if (shelfFocus) { unfocusShelf(); return }
@@ -124,7 +120,6 @@ export default function Player() {
       if (e.code === 'KeyE') {
         const { nearbyGame, nearbyCounter, nearbyShelf, shelfFocus, cart } = useStore.getState()
         if (shelfFocus) {
-          // E while focused = exit focus
           unfocusShelf()
           return
         }
@@ -151,7 +146,6 @@ export default function Player() {
 
     const pos = groupRef.current.position
 
-    // ── SHELF FOCUS MODE: animate camera to shelf, lock movement ──
     if (shelfFocus) {
       const { camPos, lookAt } = getShelfCamTarget(shelfFocus)
       camera.position.lerp(camPos, 0.06)
@@ -159,7 +153,6 @@ export default function Player() {
       return
     }
 
-    // ── NORMAL MOVEMENT ──
     if (shopOpen || checkoutOpen || filterOpen) return
 
     const direction = getMovementVector(keys.current, camYaw.current)
@@ -171,13 +164,11 @@ export default function Player() {
       groupRef.current.rotation.y = lerp(groupRef.current.rotation.y, Math.atan2(direction.x, direction.z), 0.18)
     }
 
-    // Camera follow
     camera.position.x = lerp(camera.position.x, pos.x + Math.sin(camYaw.current) * CAM_DIST, 0.1)
     camera.position.y = lerp(camera.position.y, pos.y + CAM_HEIGHT, 0.1)
     camera.position.z = lerp(camera.position.z, pos.z + Math.cos(camYaw.current) * CAM_DIST, 0.1)
     camera.lookAt(pos.x, pos.y + 1.2, pos.z)
 
-    // Proximity — game displays (pedestals), using same filter as ShopFloor
     const filtered = GAMES.filter(matchesActiveFilters(selectedPlatform, selectedGenre))
     let closest = null, closestDist = INTERACT_DIST
     POSITIONS.forEach(([px, , pz], i) => {
@@ -187,11 +178,9 @@ export default function Player() {
     })
     setNearbyGame(closest)
 
-    // Proximity — checkout counter
     const counterDist = Math.sqrt((pos.x - COUNTER_POS[0]) ** 2 + (pos.z - COUNTER_POS[2]) ** 2)
     setNearbyCounter(counterDist < COUNTER_DIST)
 
-    // Proximity — shelves
     let closestShelf = null, closestShelfDist = SHELF_DIST
     SHELVES.forEach(shelf => {
       const [sx, , sz] = shelf.pos

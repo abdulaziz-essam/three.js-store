@@ -1,14 +1,64 @@
 import { create } from 'zustand'
+import type { Game } from '../data/games'
 
-export const useStore = create((set, get) => ({
+interface Shelf {
+  id: string
+  pos: [number, number, number]
+  side: 'left' | 'right'
+}
+
+interface Toast {
+  msg: string
+  type: 'success' | 'error'
+}
+
+interface StoreState {
+  balance: number
+  cart: Game[]
+  owned: Set<string>
+  selected: Game | null
+  nearbyGame: Game | null
+  nearbyCounter: boolean
+  nearbyShelf: Shelf | null
+  shelfFocus: Shelf | null
+  shopOpen: boolean
+  checkoutOpen: boolean
+  toast: Toast | null
+  selectedPlatform: string
+  selectedGenre: string | null
+  introComplete: boolean
+  introStep: number
+  filterOpen: boolean
+
+  setNearbyGame: (game: Game | null) => void
+  setNearbyCounter: (val: boolean) => void
+  setNearbyShelf: (shelf: Shelf | null) => void
+  focusShelf: (shelf: Shelf) => void
+  unfocusShelf: () => void
+  selectGame: (game: Game) => void
+  closeShop: () => void
+  openCheckout: () => void
+  closeCheckout: () => void
+  nextIntroStep: (total: number) => void
+  completeIntro: () => void
+  openFilter: () => void
+  closeFilter: () => void
+  setFilter: (device: string, genre: string) => void
+  setPreference: (device: string, genre: string) => void
+  addToCart: (game: Game) => void
+  removeFromCart: (gameId: string) => void
+  checkout: () => void
+}
+
+export const useStore = create<StoreState>((set, get) => ({
   balance: 500,
   cart: [],
   owned: new Set(),
   selected: null,
   nearbyGame: null,
   nearbyCounter: false,
-  nearbyShelf: null,   // { id, position, rotation } of shelf player is near
-  shelfFocus: null,    // same shape — set when camera is zoomed into a shelf
+  nearbyShelf: null,
+  shelfFocus: null,
   shopOpen: false,
   checkoutOpen: false,
   toast: null,
@@ -36,6 +86,7 @@ export const useStore = create((set, get) => ({
   openFilter: () => set({ filterOpen: true }),
   closeFilter: () => set({ filterOpen: false }),
   setFilter: (device, genre) => set({ selectedPlatform: device, selectedGenre: genre, filterOpen: false }),
+  setPreference: (device, genre) => set({ selectedPlatform: device, selectedGenre: genre, introComplete: true }),
 
   addToCart: (game) => {
     const { cart, owned } = get()

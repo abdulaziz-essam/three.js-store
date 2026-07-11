@@ -3,7 +3,7 @@ import { useStore } from '../../hooks/useStore'
 import GameDisplay from './GameDisplay'
 
 // 2 rows of 4 displays in the center aisle
-const POSITIONS = [
+const POSITIONS: [number, number, number][] = [
   [-3.5, 0, -8], [-1.0, 0, -8], [1.5, 0, -8], [4.0, 0, -8],
   [-3.5, 0, -2], [-1.0, 0, -2], [1.5, 0, -2], [4.0, 0, -2],
 ]

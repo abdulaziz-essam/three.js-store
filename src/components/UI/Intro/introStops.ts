@@ -1,6 +1,14 @@
 import { GAMES } from '../../../data/games'
+import type { Game } from '../../../data/games'
 
-const INTRO_STOPS = [
+interface IntroStop {
+  label: string
+  sub: string
+  games: Game[]
+  accent: string
+}
+
+const INTRO_STOPS: IntroStop[] = [
   {
     label: 'Welcome to Pixel Vault',
     sub: 'Your ultimate video game destination',

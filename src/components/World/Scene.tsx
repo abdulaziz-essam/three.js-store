@@ -9,7 +9,7 @@ export default function Scene() {
       <fog attach="fog" args={['#0e0e18', 0.025]} />
       <Environment preset="warehouse" background={false} />
       <ambientLight intensity={0.55} color="#d0d8ff" />
-      <hemisphereLight skyColor="#c0c8ff" groundColor="#1a1008" intensity={0.4} />
+      <hemisphereLight args={['#c0c8ff', '#1a1008', 0.4]} />
 
       <Building />
       <ShopFloor />

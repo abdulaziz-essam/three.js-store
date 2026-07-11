@@ -3,13 +3,14 @@ import { useFrame } from '@react-three/fiber'
 import { MeshReflectorMaterial, Text, useTexture } from '@react-three/drei'
 import * as THREE from 'three'
 import { GAMES } from '../../data/games'
+import type { Game } from '../../data/games'
 import CharacterMesh from '../Character/CharacterMesh'
+import type { PointLight } from 'three'
 
 const BUILDING_WIDTH  = 18
 const BUILDING_HEIGHT = 5
 const BUILDING_DEPTH  = 26
 
-// ── Colour palette: bold game-store red + warm white, no casino neons ──
 const COL = {
   red:        '#cc0000',
   redBright:  '#ff2222',
@@ -23,18 +24,25 @@ const COL = {
   ceiling:    '#0a0a12',
 }
 
-// ── Posters to hang on side walls ──
-const POSTERS = [
-  // Left wall
+interface PosterDef {
+  url: string
+  fallbackColor: string
+  label: string
+  side: 'left' | 'right'
+  z: number
+  y: number
+  w: number
+  h: number
+}
+
+const POSTERS: PosterDef[] = [
   {
-    // Super Mario Odyssey — via Steam (fan port listing has art)
     url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1241440/library_600x900.jpg',
     fallbackColor: '#cc2200',
     label: 'SUPER MARIO ODYSSEY',
     side: 'left', z: -7, y: 2.5, w: 1.4, h: 2.0,
   },
   {
-    // Epic Mickey — no Steam, use IGDB cover via raw URL
     url: 'https://images.igdb.com/igdb/image/upload/t_cover_big/co1r77.jpg',
     fallbackColor: '#1a3a7a',
     label: 'EPIC MICKEY',
@@ -46,7 +54,6 @@ const POSTERS = [
     label: 'THE LAST OF US',
     side: 'left', z: 5, y: 2.5, w: 1.4, h: 2.0,
   },
-  // Right wall
   {
     url: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1593500/library_600x900.jpg',
     fallbackColor: '#1a2a4a',
@@ -67,9 +74,9 @@ const POSTERS = [
   },
 ]
 
-// ── Lighting strip above display counters ──
-function StoreLight({ position, length = 2.0 }) {
-  const ref = useRef()
+interface StoreLightProps { position: [number, number, number]; length?: number }
+function StoreLight({ position, length = 2.0 }: StoreLightProps) {
+  const ref = useRef<PointLight>(null)
   useFrame(({ clock }) => {
     if (ref.current) ref.current.intensity = 4 + Math.sin(clock.getElapsedTime() * 0.3 + position[0]) * 0.15
   })
@@ -88,8 +95,8 @@ function StoreLight({ position, length = 2.0 }) {
   )
 }
 
-// ── Overhead fluorescent strip (runs along ceiling) ──
-function FluorescentStrip({ position, length = 3.0 }) {
+interface FluorescentStripProps { position: [number, number, number]; length?: number }
+function FluorescentStrip({ position, length = 3.0 }: FluorescentStripProps) {
   return (
     <group position={position}>
       <mesh>
@@ -105,8 +112,8 @@ function FluorescentStrip({ position, length = 3.0 }) {
   )
 }
 
-// ── Red accent stripe on wall (replaces casino neon tubes) ──
-function WallStripe({ start, end, color = COL.red }) {
+interface WallStripeProps { start: [number, number, number]; end: [number, number, number]; color?: string }
+function WallStripe({ start, end, color = COL.red }: WallStripeProps) {
   const mid = useMemo(() => new THREE.Vector3().addVectors(
     new THREE.Vector3(...start), new THREE.Vector3(...end)
   ).multiplyScalar(0.5), [start, end])
@@ -118,7 +125,7 @@ function WallStripe({ start, end, color = COL.red }) {
     return q
   }, [dir])
   return (
-    <group position={mid.toArray()} quaternion={quat.toArray()}>
+    <group position={mid.toArray() as [number, number, number]} quaternion={quat.toArray() as [number, number, number, number]}>
       <mesh>
         <boxGeometry args={[0.06, len, 0.06]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} roughness={0.4} />
@@ -128,8 +135,8 @@ function WallStripe({ start, end, color = COL.red }) {
   )
 }
 
-// ── Store sign (bold red/white, no neon flicker) ──
-function StoreSign({ position, text, color, bgColor = '#111', size = 0.45 }) {
+interface StoreSignProps { position: [number, number, number]; text: string; color: string; bgColor?: string; size?: number }
+function StoreSign({ position, text, color, bgColor = '#111', size = 0.45 }: StoreSignProps) {
   return (
     <group position={position}>
       <mesh position={[0, 0, -0.06]}>
@@ -145,10 +152,17 @@ function StoreSign({ position, text, color, bgColor = '#111', size = 0.45 }) {
   )
 }
 
-// ── Error boundary to catch failed useTexture loads ──
-class TextureErrorBoundary extends Component {
-  constructor(props) { super(props); this.state = { failed: false } }
-  static getDerivedStateFromError() { return { failed: true } }
+interface TextureErrorBoundaryProps {
+  children: React.ReactNode
+  fallbackColor: string
+  w: number
+  h: number
+}
+interface TextureErrorBoundaryState { failed: boolean }
+
+class TextureErrorBoundary extends Component<TextureErrorBoundaryProps, TextureErrorBoundaryState> {
+  constructor(props: TextureErrorBoundaryProps) { super(props); this.state = { failed: false } }
+  static getDerivedStateFromError(): TextureErrorBoundaryState { return { failed: true } }
   render() {
     if (this.state.failed) {
       return (
@@ -162,13 +176,13 @@ class TextureErrorBoundary extends Component {
   }
 }
 
-// ── Game poster on wall with texture + frame ──
-function PosterTexture({ url }) {
+function PosterTexture({ url }: { url: string }) {
   const tex = useTexture(url)
   return <meshStandardMaterial map={tex} roughness={0.7} />
 }
 
-function PosterSurface({ url, fallbackColor, w, h }) {
+interface PosterSurfaceProps { url: string; fallbackColor: string; w: number; h: number }
+function PosterSurface({ url, fallbackColor, w, h }: PosterSurfaceProps) {
   return (
     <TextureErrorBoundary fallbackColor={fallbackColor} w={w} h={h}>
       <mesh>
@@ -181,7 +195,7 @@ function PosterSurface({ url, fallbackColor, w, h }) {
   )
 }
 
-function GamePoster({ poster }) {
+function GamePoster({ poster }: { poster: PosterDef }) {
   const { url, fallbackColor, side, z, y, w, h } = poster
   const wx = BUILDING_WIDTH / 2
   const px = side === 'left' ? -wx + 0.14 : wx - 0.14
@@ -189,29 +203,28 @@ function GamePoster({ poster }) {
 
   return (
     <group position={[px, y, z]} rotation={[0, rotY, 0]}>
-      {/* Frame backing */}
       <mesh position={[0, 0, -0.02]}>
         <boxGeometry args={[w + 0.1, h + 0.1, 0.04]} />
         <meshStandardMaterial color="#1a1a1a" roughness={0.8} metalness={0.3} />
       </mesh>
-      {/* Red border accent */}
       <mesh position={[0, 0, -0.005]}>
         <boxGeometry args={[w + 0.06, h + 0.06, 0.01]} />
         <meshStandardMaterial color={COL.red} emissive={COL.red} emissiveIntensity={0.4} roughness={0.5} />
       </mesh>
-      {/* Poster — always shows fallback color if texture fails */}
       <PosterSurface url={url} fallbackColor={fallbackColor} w={w} h={h} />
-      {/* Spotlight */}
       <pointLight color={COL.warmWhite} intensity={1.2} distance={3} position={[0, h / 2 + 0.5, 0.3]} />
     </group>
   )
 }
 
-// ── TV Screen (back wall, now shows game footage colors) ──
-function TVScreen({ position, color }) {
-  const ref = useRef()
+interface TVScreenProps { position: [number, number, number]; color: string }
+function TVScreen({ position, color }: TVScreenProps) {
+  const ref = useRef<THREE.Mesh>(null)
   useFrame(({ clock }) => {
-    if (ref.current) ref.current.material.emissiveIntensity = 1.2 + Math.sin(clock.getElapsedTime() * 2 + position[0]) * 0.2
+    if (ref.current) {
+      const mat = ref.current.material as THREE.MeshStandardMaterial
+      mat.emissiveIntensity = 1.2 + Math.sin(clock.getElapsedTime() * 2 + position[0]) * 0.2
+    }
   })
   return (
     <group position={position}>
@@ -224,7 +237,6 @@ function TVScreen({ position, color }) {
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.2} />
       </mesh>
       <pointLight color={color} intensity={1.2} distance={5} position={[0, 0, 0.3]} />
-      {/* Wall mount bracket */}
       <mesh position={[0, -0.62, -0.04]}>
         <boxGeometry args={[0.3, 0.12, 0.08]} />
         <meshStandardMaterial color="#222" roughness={0.7} metalness={0.5} />
@@ -233,19 +245,18 @@ function TVScreen({ position, color }) {
   )
 }
 
-// ── Shelf game cover ──
 const COVER_SLOTS = [-0.65, 0, 0.65]
 const SHELF_YS    = [0.13, 0.78, 1.43]
 const COVER_W     = 0.38
 const COVER_H     = 0.52
 const COVER_D     = 0.05
 
-function GameCoverMesh({ game }) {
+function GameCoverMesh({ game }: { game: Game }) {
   const tex = useTexture(game.cover)
   return <meshStandardMaterial map={tex} roughness={0.6} metalness={0.05} />
 }
 
-function ShelfGameBox({ game, position }) {
+function ShelfGameBox({ game, position }: { game: Game; position: [number, number, number] }) {
   return (
     <group position={position}>
       <mesh castShadow>
@@ -258,7 +269,13 @@ function ShelfGameBox({ game, position }) {
   )
 }
 
-function ShelfUnit({ position, rotation = [0, 0, 0], games = [] }) {
+interface ShelfUnitProps {
+  position: [number, number, number]
+  rotation?: [number, number, number]
+  games?: Game[]
+}
+
+function ShelfUnit({ position, rotation = [0, 0, 0], games = [] }: ShelfUnitProps) {
   const woodTex = useTexture({
     map: '/textures/wood/diff.jpg',
     normalMap: '/textures/wood/nor.jpg',
@@ -271,7 +288,7 @@ function ShelfUnit({ position, rotation = [0, 0, 0], games = [] }) {
     })
   }, [woodTex])
 
-  const slots = []
+  const slots: { game: Game; x: number; y: number; z: number }[] = []
   SHELF_YS.forEach((shelfY, row) => {
     COVER_SLOTS.forEach((slotX, col) => {
       const game = games[row * COVER_SLOTS.length + col]
@@ -281,38 +298,32 @@ function ShelfUnit({ position, rotation = [0, 0, 0], games = [] }) {
 
   return (
     <group position={position} rotation={rotation}>
-      {/* Back panel */}
       <mesh position={[0, 1.2, -0.38]} receiveShadow>
         <boxGeometry args={[2.0, 2.4, 0.06]} />
         <meshStandardMaterial {...woodTex} color="#2a1c0e" roughness={0.9} />
       </mesh>
-      {/* Shelves */}
       {[0.1, 0.75, 1.4, 2.05].map((y, i) => (
         <mesh key={i} position={[0, y, -0.18]} receiveShadow>
           <boxGeometry args={[2.0, 0.06, 0.42]} />
           <meshStandardMaterial {...woodTex} color="#3a2510" roughness={0.7} />
         </mesh>
       ))}
-      {/* Side panels */}
       {[-1.0, 1.0].map((x, i) => (
         <mesh key={i} position={[x, 1.1, -0.18]} receiveShadow>
           <boxGeometry args={[0.06, 2.2, 0.42]} />
           <meshStandardMaterial {...woodTex} color="#2a1c0e" roughness={0.85} />
         </mesh>
       ))}
-      {/* Red price-tag strip on top edge */}
       <mesh position={[0, 2.1, -0.05]}>
         <boxGeometry args={[2.0, 0.06, 0.04]} />
         <meshStandardMaterial color={COL.red} emissive={COL.red} emissiveIntensity={0.5} roughness={0.4} />
       </mesh>
-      {/* White LED strip under each shelf */}
       {[0.72, 1.37, 2.02].map((y, i) => (
         <mesh key={i} position={[0, y, 0.04]}>
           <boxGeometry args={[1.9, 0.012, 0.012]} />
           <meshStandardMaterial color={COL.warmWhite} emissive={COL.warmWhite} emissiveIntensity={4} />
         </mesh>
       ))}
-      {/* Game covers */}
       {slots.map(({ game, x, y, z }, i) => (
         <ShelfGameBox key={game.id + i} game={game} position={[x, y, z]} />
       ))}
@@ -340,6 +351,8 @@ export default function Building() {
   const hw = BUILDING_WIDTH  / 2
   const hd = BUILDING_DEPTH  / 2
   const hh = BUILDING_HEIGHT / 2
+
+  void WallStripe
 
   return (
     <group>
@@ -380,38 +393,33 @@ export default function Building() {
       )}
 
       {/* ── WALLS ── */}
-      {/* Back wall */}
       <mesh position={[0, hh, -hd]} receiveShadow>
         <boxGeometry args={[BUILDING_WIDTH, BUILDING_HEIGHT, 0.18]} />
         <meshStandardMaterial {...wallTex} color="#1c1c28" roughness={0.88} />
       </mesh>
-      {/* Front wall */}
       <mesh position={[0, hh, hd]} receiveShadow>
         <boxGeometry args={[BUILDING_WIDTH, BUILDING_HEIGHT, 0.18]} />
         <meshStandardMaterial {...wallTex} color="#1c1c28" roughness={0.88} />
       </mesh>
-      {/* Left wall */}
       <mesh position={[-hw, hh, 0]} receiveShadow>
         <boxGeometry args={[0.18, BUILDING_HEIGHT, BUILDING_DEPTH]} />
         <meshStandardMaterial {...wallTex} color="#1a1a24" roughness={0.88} />
       </mesh>
-      {/* Right wall */}
       <mesh position={[hw, hh, 0]} receiveShadow>
         <boxGeometry args={[0.18, BUILDING_HEIGHT, BUILDING_DEPTH]} />
         <meshStandardMaterial {...wallTex} color="#1a1a24" roughness={0.88} />
       </mesh>
 
-
       {/* ── FLUORESCENT CEILING STRIPS ── */}
-      {[
+      {([
         [-5, BUILDING_HEIGHT - 0.05, -8],  [0, BUILDING_HEIGHT - 0.05, -8],  [5, BUILDING_HEIGHT - 0.05, -8],
         [-5, BUILDING_HEIGHT - 0.05, -2],  [0, BUILDING_HEIGHT - 0.05, -2],  [5, BUILDING_HEIGHT - 0.05, -2],
         [-5, BUILDING_HEIGHT - 0.05,  4],  [0, BUILDING_HEIGHT - 0.05,  4],  [5, BUILDING_HEIGHT - 0.05,  4],
-      ].map(([x, y, z], i) => (
-        <FluorescentStrip key={i} position={[x, y, z]} length={3.0} />
+      ] as [number, number, number][]).map((pos, i) => (
+        <FluorescentStrip key={i} position={pos} length={3.0} />
       ))}
 
-      {/* ── MAIN STORE SIGN (red on black, bold) ── */}
+      {/* ── MAIN STORE SIGN ── */}
       <StoreSign position={[0, 4.35, -hd + 0.55]} text="PIXEL VAULT" color={COL.redBright} bgColor="#0a0a0a" size={0.55} />
       <StoreSign position={[0, 3.6,  -hd + 0.55]} text="VIDEO GAME STORE" color={COL.white}    bgColor="#cc0000"  size={0.22} />
 
@@ -441,27 +449,22 @@ export default function Building() {
 
       {/* ── CHECKOUT COUNTER ── */}
       <group position={[0, 0, -10]}>
-        {/* Counter body */}
         <mesh position={[0, 0.5, 0]} castShadow receiveShadow>
           <boxGeometry args={[5, 1.0, 1.2]} />
           <meshStandardMaterial color="#14141e" roughness={0.75} metalness={0.2} />
         </mesh>
-        {/* Counter top surface */}
         <mesh position={[0, 1.02, 0]}>
           <boxGeometry args={[5.1, 0.05, 1.25]} />
           <meshStandardMaterial color="#22222e" roughness={0.25} metalness={0.55} />
         </mesh>
-        {/* Red front stripe */}
         <mesh position={[0, 0.55, 0.62]}>
           <boxGeometry args={[5.05, 0.06, 0.04]} />
           <meshStandardMaterial color={COL.red} emissive={COL.red} emissiveIntensity={0.5} roughness={0.4} />
         </mesh>
-        {/* Register screen frame */}
         <mesh position={[0, 1.45, -0.3]}>
           <boxGeometry args={[0.65, 0.44, 0.05]} />
           <meshStandardMaterial color="#0d0d0d" roughness={0.8} metalness={0.5} />
         </mesh>
-        {/* Register screen */}
         <mesh position={[0, 1.45, -0.275]}>
           <boxGeometry args={[0.58, 0.38, 0.01]} />
           <meshStandardMaterial color="#001a33" emissive="#0055cc" emissiveIntensity={1.5} />
@@ -484,7 +487,6 @@ export default function Building() {
       </group>
 
       {/* ── ENTRANCE ── */}
-      {/* Door frame — bold red pillars */}
       <mesh position={[-1.5, 1.75, hd - 0.12]}>
         <boxGeometry args={[0.18, 3.5, 0.18]} />
         <meshStandardMaterial color={COL.red} emissive={COL.red} emissiveIntensity={0.4} roughness={0.4} />
@@ -509,7 +511,7 @@ export default function Building() {
         <meshStandardMaterial color={COL.red} emissive={COL.red} emissiveIntensity={0.8} />
       </Text>
 
-      {/* ── SALE SIGNS on side walls (yellow, retail style) ── */}
+      {/* ── SALE SIGNS on side walls ── */}
       <StoreSign position={[-hw + 0.3, 1.5, -5]} text="NEW" color={COL.yellow} bgColor={COL.red} size={0.28} />
       <StoreSign position={[-hw + 0.3, 1.5,  2]} text="SALE" color={COL.white} bgColor={COL.red} size={0.28} />
       <StoreSign position={[ hw - 0.3, 1.5, -5]} text="HOT" color={COL.yellow} bgColor="#111" size={0.28} />

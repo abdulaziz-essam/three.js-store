@@ -1,8 +1,15 @@
-export default function IntroGameCard({ game, index }) {
+import type { Game } from '../../../data/games'
+
+interface IntroGameCardProps {
+  game: Game
+  index: number
+}
+
+export default function IntroGameCard({ game, index }: IntroGameCardProps) {
   return (
     <div
       className="intro-game-card"
-      style={{ '--accent': game.color, animationDelay: `${index * 0.12}s` }}
+      style={{ '--accent': game.color, animationDelay: `${index * 0.12}s` } as React.CSSProperties}
     >
       <div className="intro-game-img-wrap">
         <img
@@ -10,8 +17,9 @@ export default function IntroGameCard({ game, index }) {
           alt={game.title}
           className="intro-game-img"
           onError={e => {
-            e.target.style.display = 'none'
-            e.target.nextSibling.style.display = 'flex'
+            const img = e.currentTarget
+            img.style.display = 'none';
+            (img.nextSibling as HTMLElement | null)?.style && ((img.nextSibling as HTMLElement).style.display = 'flex')
           }}
         />
         <div className="intro-game-fallback" style={{ background: game.color + '33' }}>

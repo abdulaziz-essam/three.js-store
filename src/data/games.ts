@@ -1,4 +1,17 @@
-export const GAMES = [
+export interface Game {
+  id: string
+  title: string
+  genre: string
+  price: number
+  rating: number
+  cover: string
+  color: string
+  accent: string
+  tag?: string
+  platform: string[]
+}
+
+export const GAMES: Game[] = [
   {
     id: 'cyberpunk',
     title: 'Cyberpunk 2077',
@@ -97,8 +110,8 @@ export const GAMES = [
   },
 ]
 
-export function matchesActiveFilters(platform, genre) {
-  return (g) =>
+export function matchesActiveFilters(platform: string | null, genre: string | null) {
+  return (g: Game) =>
     (!platform || g.platform.includes(platform)) &&
     (!genre    || g.genre === genre)
 }

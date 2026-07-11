@@ -8,22 +8,21 @@ const ALL_GENRES = [...new Set(GAMES.map(g => g.genre))]
 export default function FilterPanel() {
   const { filterOpen, closeFilter, setFilter, selectedPlatform, selectedGenre } = useStore()
 
-  const [devIdx, setDevIdx]   = useState(() => Math.max(0, DEVICES.findIndex(d => d.id === selectedPlatform)))
-  const [genIdx, setGenIdx]   = useState(() => Math.max(0, ALL_GENRES.indexOf(selectedGenre)))
-  const [focus, setFocus]     = useState('device') // 'device' | 'genre'
+  const [devIdx, setDevIdx] = useState(() => Math.max(0, DEVICES.findIndex(d => d.id === selectedPlatform)))
+  const [genIdx, setGenIdx] = useState(() => Math.max(0, ALL_GENRES.indexOf(selectedGenre ?? '')))
+  const [focus, setFocus]   = useState<'device' | 'genre'>('device')
 
-  // sync indices when panel opens
   useEffect(() => {
     if (filterOpen) {
       setDevIdx(Math.max(0, DEVICES.findIndex(d => d.id === selectedPlatform)))
       setGenIdx(selectedGenre ? Math.max(0, ALL_GENRES.indexOf(selectedGenre)) : 0)
       setFocus('device')
     }
-  }, [filterOpen])
+  }, [filterOpen, selectedPlatform, selectedGenre])
 
   useEffect(() => {
     if (!filterOpen) return
-    const onKey = (e) => {
+    const onKey = (e: KeyboardEvent) => {
       if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
         const dir = e.code === 'ArrowRight' ? 1 : -1
         if (focus === 'device') {

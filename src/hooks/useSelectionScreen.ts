@@ -6,8 +6,8 @@ const ALL_GENRES = [...new Set(GAMES.map((g) => g.genre))]
 
 export function useSelectionScreen() {
   const setPreference = useStore((s) => s.setPreference)
-  const [device, setDevice] = useState(null)
-  const [genre, setGenre] = useState(null)
+  const [device, setDevice] = useState<string | null>(null)
+  const [genre, setGenre] = useState<string | null>(null)
 
   const availableGenres = device
     ? ALL_GENRES.filter((g) =>
@@ -20,7 +20,7 @@ export function useSelectionScreen() {
       ? GAMES.filter((g) => g.platform.includes(device) && g.genre === genre).length
       : null
 
-  function selectDevice(id) {
+  function selectDevice(id: string) {
     setDevice(id)
     setGenre(null)
   }
@@ -30,7 +30,7 @@ export function useSelectionScreen() {
     setPreference(device, genre)
   }
 
-  const canEnter = Boolean(device && genre && matchCount > 0)
+  const canEnter = Boolean(device && genre && matchCount != null && matchCount > 0)
 
   return {
     device,

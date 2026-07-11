@@ -1,10 +1,16 @@
-import { useRef, useState, Suspense } from 'react'
+import { useRef, Suspense } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useTexture, Text, MeshTransmissionMaterial, Sparkles } from '@react-three/drei'
 import { useStore } from '../../hooks/useStore'
-import * as THREE from 'three'
+import type { Game } from '../../data/games'
+import type { Mesh, PointLight, MeshStandardMaterial, Group } from 'three'
 
-function CoverImage({ url, color }) {
+interface CoverImageProps { url: string }
+interface FallbackCoverProps { game: Game }
+interface FloatingGameProps { game: Game }
+interface GameDisplayProps { game: Game; position: [number, number, number] }
+
+function CoverImage({ url }: CoverImageProps) {
   const texture = useTexture(url)
   return (
     <mesh castShadow>
@@ -14,7 +20,7 @@ function CoverImage({ url, color }) {
   )
 }
 
-function FallbackCover({ game }) {
+function FallbackCover({ game }: FallbackCoverProps) {
   return (
     <mesh castShadow>
       <boxGeometry args={[0.72, 1.0, 0.06]} />
@@ -23,8 +29,8 @@ function FallbackCover({ game }) {
   )
 }
 
-function FloatingGame({ game }) {
-  const groupRef = useRef()
+function FloatingGame({ game }: FloatingGameProps) {
+  const groupRef = useRef<Group>(null)
   useFrame(({ clock }) => {
     if (!groupRef.current) return
     const t = clock.getElapsedTime()
@@ -34,7 +40,7 @@ function FloatingGame({ game }) {
   return (
     <group ref={groupRef}>
       <Suspense fallback={<FallbackCover game={game} />}>
-        <CoverImage url={game.cover} color={game.color} />
+        <CoverImage url={game.cover} />
       </Suspense>
       {/* Spine */}
       <mesh position={[-0.38, 0, 0]}>
@@ -68,20 +74,25 @@ function GlassDome() {
   )
 }
 
-export default function GameDisplay({ game, position }) {
+export default function GameDisplay({ game, position }: GameDisplayProps) {
   const selectGame = useStore(s => s.selectGame)
   const nearbyGame = useStore(s => s.nearbyGame)
   const owned      = useStore(s => s.owned)
   const isNear  = nearbyGame?.id === game.id
   const isOwned = owned.has(game.id)
-  const lightRef    = useRef()
-  const baseRingRef = useRef()
+  const lightRef    = useRef<PointLight>(null)
+  const baseRingRef = useRef<Mesh>(null)
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     if (lightRef.current) lightRef.current.intensity = (isNear ? 5 : 2) + Math.sin(t * 2) * 0.5
-    if (baseRingRef.current) baseRingRef.current.material.emissiveIntensity = (isNear ? 4 : 1.5) + Math.sin(t * 3) * 0.5
+    if (baseRingRef.current) {
+      const mat = baseRingRef.current.material as MeshStandardMaterial
+      mat.emissiveIntensity = (isNear ? 4 : 1.5) + Math.sin(t * 3) * 0.5
+    }
   })
+
+  void isOwned
 
   return (
     <group position={position}>
@@ -176,6 +187,11 @@ export default function GameDisplay({ game, position }) {
           </Text>
         </group>
       )}
+
+      {/* Trigger select on click */}
+      <mesh position={[0, 1.5, 0]} visible={false} onClick={() => selectGame(game)}>
+        <sphereGeometry args={[1.0]} />
+      </mesh>
     </group>
   )
 }
