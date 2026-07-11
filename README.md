@@ -1,16 +1,77 @@
-# React + Vite
+# Pixel Vault — 3D Video Game Store
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+An interactive 3D game store built with React and Three.js. Walk around, browse games, add to cart, and checkout using in-game currency.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Tech Stack
 
-## React Compiler
+| Tool | Version |
+|---|---|
+| React | 19.2.7 |
+| Three.js | 0.184.0 |
+| React Three Fiber | 9.6.1 |
+| React Three Drei | 10.7.7 |
+| React Three Rapier | 2.2.0 |
+| Zustand | 5.0.14 |
+| Vite | 8.1.0 |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the Oxlint configuration
+## Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+- **3D Navigation** — WASD / Arrow keys to move, mouse to look around
+- **Game Catalog** — 8 AAA titles with price, genre, platform, and rating
+- **Wall Shelves** — 6 interactive shelves, press `E` to browse
+- **Filtering** — Press `F` to filter by platform and genre
+- **Shopping Cart** — Add games, checkout at the counter with 500 starting credits
+- **Post-processing** — Bloom, vignette, chromatic aberration
+
+---
+
+## Controls
+
+| Key | Action |
+|---|---|
+| `WASD` / Arrows | Move |
+| Mouse | Look around |
+| `E` | Interact (game pedestal / shelf / checkout) |
+| `F` | Open filter panel |
+| `Esc` | Close any open menu |
+
+---
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+Other scripts:
+
+```bash
+npm run build    # Production build
+npm run preview  # Preview production build
+npm run lint     # Lint with Oxlint
+```
+
+---
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── Character/   # Player mesh & movement controller
+│   ├── World/       # 3D scene, building, lighting
+│   ├── Shop/        # Game pedestals & floor layout
+│   └── UI/          # HUD, modals, filter panel, intro
+├── hooks/
+│   ├── useStore.js  # Global state (cart, balance, filters)
+│   └── useKeys.js   # Keyboard input
+├── data/
+│   ├── games.js     # Game catalog + filter logic
+│   └── devices.js   # Platform definitions
+└── App.jsx          # Canvas setup & post-processing
+```

@@ -1,4 +1,4 @@
-import { GAMES } from '../../data/games'
+import { GAMES, matchesActiveFilters } from '../../data/games'
 import { useStore } from '../../hooks/useStore'
 import GameDisplay from './GameDisplay'
 
@@ -12,11 +12,7 @@ export default function ShopFloor() {
   const selectedPlatform = useStore((s) => s.selectedPlatform)
   const selectedGenre = useStore((s) => s.selectedGenre)
 
-  const filtered = GAMES.filter(
-    (g) =>
-      (!selectedPlatform || g.platform.includes(selectedPlatform)) &&
-      (!selectedGenre || g.genre === selectedGenre)
-  )
+  const filtered = GAMES.filter(matchesActiveFilters(selectedPlatform, selectedGenre))
 
   return (
     <group>

@@ -14,3 +14,12 @@ export function useKeys() {
   }, [])
   return keys
 }
+
+export function getDirectionInput(keys) {
+  return {
+    up:    keys['KeyW'] || keys['ArrowUp'],
+    down:  keys['KeyS'] || keys['ArrowDown'],
+    left:  keys['KeyA'] || keys['ArrowLeft'],
+    right: keys['KeyD'] || keys['ArrowRight'],
+  }
+}

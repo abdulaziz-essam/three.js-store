@@ -1,9 +1,9 @@
 import { useRef, useEffect } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
-import { useKeys } from '../../hooks/useKeys'
+import { useKeys, getDirectionInput } from '../../hooks/useKeys'
 import { useStore } from '../../hooks/useStore'
-import { GAMES } from '../../data/games'
+import { GAMES, matchesActiveFilters } from '../../data/games'
 import CharacterMesh from './CharacterMesh'
 
 const POSITIONS = [
@@ -31,6 +31,19 @@ const SHELVES = [
 ]
 
 function lerp(a, b, t) { return a + (b - a) * t }
+
+function getMovementVector(keys, yaw) {
+  const cameraForward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw))
+  const cameraRight   = new THREE.Vector3( Math.cos(yaw), 0, -Math.sin(yaw))
+  const direction = new THREE.Vector3()
+  const { up, down, left, right } = getDirectionInput(keys)
+
+  if (up)    direction.add(cameraForward)
+  if (down)  direction.sub(cameraForward)
+  if (left)  direction.sub(cameraRight)
+  if (right) direction.add(cameraRight)
+  return direction
+}
 
 // Camera target when focused on a shelf
 function getShelfCamTarget(shelf) {
@@ -70,6 +83,8 @@ export default function Player() {
   const introComplete    = useStore(s => s.introComplete)
   const filterOpen       = useStore(s => s.filterOpen)
   const shelfFocus       = useStore(s => s.shelfFocus)
+  const selectedPlatform = useStore(s => s.selectedPlatform)
+  const selectedGenre    = useStore(s => s.selectedGenre)
   const camYaw = useRef(Math.PI)
 
   useEffect(() => {
@@ -147,19 +162,13 @@ export default function Player() {
     // ── NORMAL MOVEMENT ──
     if (shopOpen || checkoutOpen || filterOpen) return
 
-    const fwd = new THREE.Vector3(-Math.sin(camYaw.current), 0, -Math.cos(camYaw.current))
-    const rgt = new THREE.Vector3(Math.cos(camYaw.current), 0, -Math.sin(camYaw.current))
-    const move = new THREE.Vector3()
-    if (keys.current['KeyW'] || keys.current['ArrowUp'])    move.add(fwd)
-    if (keys.current['KeyS'] || keys.current['ArrowDown'])  move.sub(fwd)
-    if (keys.current['KeyA'] || keys.current['ArrowLeft'])  move.sub(rgt)
-    if (keys.current['KeyD'] || keys.current['ArrowRight']) move.add(rgt)
+    const direction = getMovementVector(keys.current, camYaw.current)
 
-    if (move.length() > 0) {
-      move.normalize().multiplyScalar(SPEED * delta)
-      pos.x = Math.max(-BOUNDS.x, Math.min(BOUNDS.x, pos.x + move.x))
-      pos.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, pos.z + move.z))
-      groupRef.current.rotation.y = lerp(groupRef.current.rotation.y, Math.atan2(move.x, move.z), 0.18)
+    if (direction.length() > 0) {
+      direction.normalize().multiplyScalar(SPEED * delta)
+      pos.x = Math.max(-BOUNDS.x, Math.min(BOUNDS.x, pos.x + direction.x))
+      pos.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, pos.z + direction.z))
+      groupRef.current.rotation.y = lerp(groupRef.current.rotation.y, Math.atan2(direction.x, direction.z), 0.18)
     }
 
     // Camera follow
@@ -168,11 +177,13 @@ export default function Player() {
     camera.position.z = lerp(camera.position.z, pos.z + Math.cos(camYaw.current) * CAM_DIST, 0.1)
     camera.lookAt(pos.x, pos.y + 1.2, pos.z)
 
-    // Proximity — game displays (pedestals)
+    // Proximity — game displays (pedestals), using same filter as ShopFloor
+    const filtered = GAMES.filter(matchesActiveFilters(selectedPlatform, selectedGenre))
     let closest = null, closestDist = INTERACT_DIST
     POSITIONS.forEach(([px, , pz], i) => {
+      if (!filtered[i]) return
       const d = Math.sqrt((pos.x - px) ** 2 + (pos.z - pz) ** 2)
-      if (d < closestDist) { closestDist = d; closest = GAMES[i] }
+      if (d < closestDist) { closestDist = d; closest = filtered[i] }
     })
     setNearbyGame(closest)
 

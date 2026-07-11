@@ -96,3 +96,9 @@ export const GAMES = [
     platform: ['pc', 'ps5', 'xbox'],
   },
 ]
+
+export function matchesActiveFilters(platform, genre) {
+  return (g) =>
+    (!platform || g.platform.includes(platform)) &&
+    (!genre    || g.genre === genre)
+}
