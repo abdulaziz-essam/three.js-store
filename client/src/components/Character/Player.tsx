@@ -15,8 +15,6 @@ import {
 } from './playerConstants'
 import type { Group } from 'three'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t
 }
@@ -48,8 +46,6 @@ function dist2D(ax: number, az: number, bx: number, bz: number) {
   return Math.sqrt((ax - bx) ** 2 + (az - bz) ** 2)
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 export default function Player() {
   const groupRef = useRef<Group>(null)
   const keys     = useKeys()
@@ -58,7 +54,6 @@ export default function Player() {
   const camYaw  = useRef(Math.PI)
   const velocity = useRef(new THREE.Vector3())
 
-  // Store actions
   const setNearbyGame    = useStore(s => s.setNearbyGame)
   const setNearbyCounter = useStore(s => s.setNearbyCounter)
   const setNearbyShelf   = useStore(s => s.setNearbyShelf)
@@ -71,7 +66,6 @@ export default function Player() {
   const openFilter       = useStore(s => s.openFilter)
   const closeFilter      = useStore(s => s.closeFilter)
 
-  // Store state
   const shopOpen         = useStore(s => s.shopOpen)
   const checkoutOpen     = useStore(s => s.checkoutOpen)
   const filterOpen       = useStore(s => s.filterOpen)
@@ -80,7 +74,6 @@ export default function Player() {
   const selectedPlatform = useStore(s => s.selectedPlatform)
   const selectedGenre    = useStore(s => s.selectedGenre)
 
-  // Mouse look + pointer lock
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (!shopOpen && !shelfFocus) camYaw.current -= e.movementX * CAM_SENSITIVITY
