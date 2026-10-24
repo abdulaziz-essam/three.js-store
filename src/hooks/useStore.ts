@@ -29,6 +29,7 @@ interface StoreState {
   introComplete: boolean
   introStep: number
   filterOpen: boolean
+  profileComplete: boolean
 
   setNearbyGame: (game: Game | null) => void
   setNearbyCounter: (val: boolean) => void
@@ -45,6 +46,7 @@ interface StoreState {
   closeFilter: () => void
   setFilter: (device: string, genre: string) => void
   setPreference: (device: string, genre: string) => void
+  completeProfile: () => void
   addToCart: (game: Game) => void
   removeFromCart: (gameId: string) => void
   checkout: () => void
@@ -67,6 +69,7 @@ export const useStore = create<StoreState>((set, get) => ({
   introComplete: false,
   introStep: 0,
   filterOpen: false,
+  profileComplete: false,
 
   setNearbyGame: (game) => set({ nearbyGame: game }),
   setNearbyCounter: (val) => set({ nearbyCounter: val }),
@@ -86,7 +89,8 @@ export const useStore = create<StoreState>((set, get) => ({
   openFilter: () => set({ filterOpen: true }),
   closeFilter: () => set({ filterOpen: false }),
   setFilter: (device, genre) => set({ selectedPlatform: device, selectedGenre: genre, filterOpen: false }),
-  setPreference: (device, genre) => set({ selectedPlatform: device, selectedGenre: genre, introComplete: true }),
+  setPreference: (device, genre) => set({ selectedPlatform: device, selectedGenre: genre, profileComplete: true, introComplete: true }),
+  completeProfile: () => set({ profileComplete: true }),
 
   addToCart: (game) => {
     const { cart, owned } = get()

@@ -1,11 +1,13 @@
 import { useStore } from '../../hooks/useStore'
 import IntroOverlay from './Intro/IntroOverlay'
+import SelectionScreen from './SelectionScreen'
 
 export default function HUD() {
   const { balance, owned, nearbyGame, nearbyCounter, nearbyShelf, shelfFocus,
-          shopOpen, checkoutOpen, filterOpen, introComplete,
+          shopOpen, checkoutOpen, filterOpen, introComplete, profileComplete,
           cart, toast, selectedPlatform, selectedGenre } = useStore()
 
+  if (!profileComplete) return <SelectionScreen />
   if (!introComplete) return <IntroOverlay />
 
   const modalOpen = shopOpen || checkoutOpen || filterOpen || shelfFocus

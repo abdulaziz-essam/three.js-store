@@ -412,9 +412,10 @@ export default function Building() {
 
       {/* ── FLUORESCENT CEILING STRIPS ── */}
       {([
-        [-5, BUILDING_HEIGHT - 0.05, -8],  [0, BUILDING_HEIGHT - 0.05, -8],  [5, BUILDING_HEIGHT - 0.05, -8],
-        [-5, BUILDING_HEIGHT - 0.05, -2],  [0, BUILDING_HEIGHT - 0.05, -2],  [5, BUILDING_HEIGHT - 0.05, -2],
-        [-5, BUILDING_HEIGHT - 0.05,  4],  [0, BUILDING_HEIGHT - 0.05,  4],  [5, BUILDING_HEIGHT - 0.05,  4],
+        [-5, BUILDING_HEIGHT - 0.05, -12], [0, BUILDING_HEIGHT - 0.05, -12], [5, BUILDING_HEIGHT - 0.05, -12],
+        [-5, BUILDING_HEIGHT - 0.05,  -8], [0, BUILDING_HEIGHT - 0.05,  -8], [5, BUILDING_HEIGHT - 0.05,  -8],
+        [-5, BUILDING_HEIGHT - 0.05,  -2], [0, BUILDING_HEIGHT - 0.05,  -2], [5, BUILDING_HEIGHT - 0.05,  -2],
+        [-5, BUILDING_HEIGHT - 0.05,   4], [0, BUILDING_HEIGHT - 0.05,   4], [5, BUILDING_HEIGHT - 0.05,   4],
       ] as [number, number, number][]).map((pos, i) => (
         <FluorescentStrip key={i} position={pos} length={3.0} />
       ))}
