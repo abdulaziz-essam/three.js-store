@@ -5,65 +5,60 @@ import { useKeys, getDirectionInput } from '../../hooks/useKeys'
 import { useStore } from '../../hooks/useStore'
 import { GAMES, matchesActiveFilters } from '../../data/games'
 import CharacterMesh from './CharacterMesh'
+import { resolveCollisions } from './collision'
+import {
+  SPEED, ACCELERATION, FRICTION,
+  CAM_DIST, CAM_HEIGHT, CAM_SENSITIVITY,
+  BOUNDS, INTERACT_DIST, COUNTER_DIST, SHELF_DIST,
+  COUNTER_POS, DISPLAY_POSITIONS, SHELVES,
+  type Shelf,
+} from './playerConstants'
 import type { Group } from 'three'
 
-const POSITIONS: [number, number, number][] = [
-  [-3.5, 0, -8], [-1.0, 0, -8], [1.5, 0, -8], [4.0, 0, -8],
-  [-3.5, 0, -2], [-1.0, 0, -2], [1.5, 0, -2], [4.0, 0, -2],
-]
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-const SPEED = 18
-const CAM_DIST = 5
-const CAM_HEIGHT = 2.8
-const BOUNDS = { x: 7.5, zMin: -11.5, zMax: 11.5 }
-const INTERACT_DIST = 2.6
-const COUNTER_POS: [number, number, number] = [0, 0, -10]
-const COUNTER_DIST = 3.5
-const SHELF_DIST = 2.8
-
-const SHELVES = [
-  { id: 'L0', pos: [-7.5, 0, -8] as [number, number, number], side: 'left'  as const },
-  { id: 'L1', pos: [-7.5, 0, -3] as [number, number, number], side: 'left'  as const },
-  { id: 'L2', pos: [-7.5, 0,  3] as [number, number, number], side: 'left'  as const },
-  { id: 'R0', pos: [ 7.5, 0, -8] as [number, number, number], side: 'right' as const },
-  { id: 'R1', pos: [ 7.5, 0, -3] as [number, number, number], side: 'right' as const },
-  { id: 'R2', pos: [ 7.5, 0,  3] as [number, number, number], side: 'right' as const },
-]
-
-function lerp(a: number, b: number, t: number) { return a + (b - a) * t }
-
-function getMovementVector(keys: Record<string, boolean>, yaw: number) {
-  const cameraForward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw))
-  const cameraRight   = new THREE.Vector3( Math.cos(yaw), 0, -Math.sin(yaw))
-  const direction = new THREE.Vector3()
-  const { up, down, left, right } = getDirectionInput(keys)
-
-  if (up)    direction.add(cameraForward)
-  if (down)  direction.sub(cameraForward)
-  if (left)  direction.sub(cameraRight)
-  if (right) direction.add(cameraRight)
-  return direction
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t
 }
 
-function getShelfCamTarget(shelf: typeof SHELVES[number]) {
+function getMovementVector(keys: Record<string, boolean>, yaw: number): THREE.Vector3 {
+  const forward = new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw))
+  const right   = new THREE.Vector3( Math.cos(yaw), 0, -Math.sin(yaw))
+  const dir     = new THREE.Vector3()
+  const input   = getDirectionInput(keys)
+
+  if (input.up)    dir.add(forward)
+  if (input.down)  dir.sub(forward)
+  if (input.left)  dir.sub(right)
+  if (input.right) dir.add(right)
+
+  return dir
+}
+
+function getShelfCamTarget(shelf: Shelf) {
   const [sx, , sz] = shelf.pos
-  if (shelf.side === 'left') {
-    return {
-      camPos: new THREE.Vector3(sx + 3.2, 1.6, sz),
-      lookAt: new THREE.Vector3(sx + 0.5, 1.4, sz),
-    }
-  } else {
-    return {
-      camPos: new THREE.Vector3(sx - 3.2, 1.6, sz),
-      lookAt: new THREE.Vector3(sx - 0.5, 1.4, sz),
-    }
+  const sign = shelf.side === 'left' ? 1 : -1
+  return {
+    camPos: new THREE.Vector3(sx + sign * 3.2, 1.6, sz),
+    lookAt: new THREE.Vector3(sx + sign * 0.5, 1.4, sz),
   }
 }
 
+function dist2D(ax: number, az: number, bx: number, bz: number) {
+  return Math.sqrt((ax - bx) ** 2 + (az - bz) ** 2)
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function Player() {
   const groupRef = useRef<Group>(null)
-  const keys = useKeys()
+  const keys     = useKeys()
   const { camera } = useThree()
+
+  const camYaw  = useRef(Math.PI)
+  const velocity = useRef(new THREE.Vector3())
+
+  // Store actions
   const setNearbyGame    = useStore(s => s.setNearbyGame)
   const setNearbyCounter = useStore(s => s.setNearbyCounter)
   const setNearbyShelf   = useStore(s => s.setNearbyShelf)
@@ -75,19 +70,20 @@ export default function Player() {
   const closeCheckout    = useStore(s => s.closeCheckout)
   const openFilter       = useStore(s => s.openFilter)
   const closeFilter      = useStore(s => s.closeFilter)
+
+  // Store state
   const shopOpen         = useStore(s => s.shopOpen)
   const checkoutOpen     = useStore(s => s.checkoutOpen)
-  const introComplete    = useStore(s => s.introComplete)
   const filterOpen       = useStore(s => s.filterOpen)
+  const introComplete    = useStore(s => s.introComplete)
   const shelfFocus       = useStore(s => s.shelfFocus)
   const selectedPlatform = useStore(s => s.selectedPlatform)
   const selectedGenre    = useStore(s => s.selectedGenre)
-  const camYaw = useRef(Math.PI)
 
+  // Mouse look + pointer lock
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      if (shopOpen || shelfFocus) return
-      camYaw.current -= e.movementX * 0.003
+      if (!shopOpen && !shelfFocus) camYaw.current -= e.movementX * CAM_SENSITIVITY
     }
     const onClick = () => {
       if (!shopOpen && !shelfFocus) document.body.requestPointerLock()
@@ -100,41 +96,27 @@ export default function Player() {
     }
   }, [shopOpen, shelfFocus])
 
+  // Keyboard interactions
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === 'Escape') {
-        const { shelfFocus } = useStore.getState()
-        if (shelfFocus) { unfocusShelf(); return }
-        closeShop()
-        closeCheckout()
-        closeFilter()
+        if (useStore.getState().shelfFocus) { unfocusShelf(); return }
+        closeShop(); closeCheckout(); closeFilter()
         document.exitPointerLock()
         return
       }
+
       if (e.code === 'KeyF') {
-        const { filterOpen } = useStore.getState()
-        if (filterOpen) closeFilter()
-        else openFilter()
+        useStore.getState().filterOpen ? closeFilter() : openFilter()
         return
       }
+
       if (e.code === 'KeyE') {
         const { nearbyGame, nearbyCounter, nearbyShelf, shelfFocus, cart } = useStore.getState()
-        if (shelfFocus) {
-          unfocusShelf()
-          return
-        }
-        if (nearbyShelf) {
-          focusShelf(nearbyShelf)
-          document.exitPointerLock()
-          return
-        }
-        if (nearbyCounter && cart.length > 0) {
-          openCheckout()
-          return
-        }
-        if (nearbyGame) {
-          selectGame(nearbyGame)
-        }
+        if (shelfFocus)                        { unfocusShelf(); return }
+        if (nearbyShelf)                       { focusShelf(nearbyShelf); document.exitPointerLock(); return }
+        if (nearbyCounter && cart.length > 0)  { openCheckout(); return }
+        if (nearbyGame)                        { selectGame(nearbyGame) }
       }
     }
     window.addEventListener('keydown', onKey)
@@ -146,6 +128,7 @@ export default function Player() {
 
     const pos = groupRef.current.position
 
+    // Shelf focus — lock camera to shelf view
     if (shelfFocus) {
       const { camPos, lookAt } = getShelfCamTarget(shelfFocus)
       camera.position.lerp(camPos, 0.06)
@@ -155,39 +138,54 @@ export default function Player() {
 
     if (shopOpen || checkoutOpen || filterOpen) return
 
-    const direction = getMovementVector(keys.current, camYaw.current)
+    // ── Movement with acceleration / friction ──
+    const vel = velocity.current
+    const dir = getMovementVector(keys.current, camYaw.current)
 
-    if (direction.length() > 0) {
-      direction.normalize().multiplyScalar(SPEED * delta)
-      pos.x = Math.max(-BOUNDS.x, Math.min(BOUNDS.x, pos.x + direction.x))
-      pos.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, pos.z + direction.z))
-      groupRef.current.rotation.y = lerp(groupRef.current.rotation.y, Math.atan2(direction.x, direction.z), 0.18)
+    if (dir.length() > 0) {
+      dir.normalize()
+      vel.x += (dir.x * SPEED - vel.x) * Math.min(1, ACCELERATION * delta)
+      vel.z += (dir.z * SPEED - vel.z) * Math.min(1, ACCELERATION * delta)
+    } else {
+      vel.x += -vel.x * Math.min(1, FRICTION * delta)
+      vel.z += -vel.z * Math.min(1, FRICTION * delta)
     }
 
+    if (Math.abs(vel.x) > 0.01 || Math.abs(vel.z) > 0.01) {
+      pos.x = Math.max(-BOUNDS.x,   Math.min(BOUNDS.x,   pos.x + vel.x * delta))
+      pos.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, pos.z + vel.z * delta))
+      resolveCollisions(pos, vel)
+      groupRef.current.rotation.y = lerp(groupRef.current.rotation.y, Math.atan2(vel.x, vel.z), 0.18)
+    }
+
+    // ── Camera follow ──
     camera.position.x = lerp(camera.position.x, pos.x + Math.sin(camYaw.current) * CAM_DIST, 0.1)
     camera.position.y = lerp(camera.position.y, pos.y + CAM_HEIGHT, 0.1)
     camera.position.z = lerp(camera.position.z, pos.z + Math.cos(camYaw.current) * CAM_DIST, 0.1)
     camera.lookAt(pos.x, pos.y + 1.2, pos.z)
 
+    // ── Proximity checks ──
     const filtered = GAMES.filter(matchesActiveFilters(selectedPlatform, selectedGenre))
-    let closest = null, closestDist = INTERACT_DIST
-    POSITIONS.forEach(([px, , pz], i) => {
+
+    let nearestGame = null
+    let nearestGameDist = INTERACT_DIST
+    DISPLAY_POSITIONS.forEach(([px, , pz], i) => {
       if (!filtered[i]) return
-      const d = Math.sqrt((pos.x - px) ** 2 + (pos.z - pz) ** 2)
-      if (d < closestDist) { closestDist = d; closest = filtered[i] }
+      const d = dist2D(pos.x, pos.z, px, pz)
+      if (d < nearestGameDist) { nearestGameDist = d; nearestGame = filtered[i] }
     })
-    setNearbyGame(closest)
+    setNearbyGame(nearestGame)
 
-    const counterDist = Math.sqrt((pos.x - COUNTER_POS[0]) ** 2 + (pos.z - COUNTER_POS[2]) ** 2)
-    setNearbyCounter(counterDist < COUNTER_DIST)
+    setNearbyCounter(dist2D(pos.x, pos.z, COUNTER_POS.x, COUNTER_POS.z) < COUNTER_DIST)
 
-    let closestShelf = null, closestShelfDist = SHELF_DIST
+    let nearestShelf: Shelf | null = null
+    let nearestShelfDist = SHELF_DIST
     SHELVES.forEach(shelf => {
       const [sx, , sz] = shelf.pos
-      const d = Math.sqrt((pos.x - sx) ** 2 + (pos.z - sz) ** 2)
-      if (d < closestShelfDist) { closestShelfDist = d; closestShelf = shelf }
+      const d = dist2D(pos.x, pos.z, sx, sz)
+      if (d < nearestShelfDist) { nearestShelfDist = d; nearestShelf = shelf }
     })
-    setNearbyShelf(closestShelf)
+    setNearbyShelf(nearestShelf)
   })
 
   return (
