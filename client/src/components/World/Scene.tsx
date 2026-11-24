@@ -25,8 +25,6 @@ export default function Scene() {
   return (
     <>
       <fog attach="fog" args={[FOG_COLOR, FOG_DENSITY]} />
-      {/* Reflections/ambient from a tiny environment built once in code:
-          no HDR download at startup, rendered only a single frame. */}
       <Environment resolution={64} frames={1} background={false}>
         <Lightformer
           form="rect"

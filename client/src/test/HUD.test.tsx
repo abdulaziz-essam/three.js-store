@@ -21,6 +21,7 @@ function baseState(overrides: Record<string, unknown> = {}) {
     shopOpen: false,
     checkoutOpen: false,
     filterOpen: false,
+    storyComplete: true,
     introComplete: true,
     profileComplete: true,
     cart: [],
@@ -53,9 +54,9 @@ describe('HUD', () => {
     expect(screen.getByText('500.00')).toBeTruthy()
   })
 
-  it('shows the PIXEL VAULT logo', () => {
+  it('shows the AEK STORE logo', () => {
     render(<HUD />)
-    expect(screen.getByText(/PIXEL VAULT/i)).toBeTruthy()
+    expect(screen.getByText(/AEK STORE/i)).toBeTruthy()
   })
 
   it('shows cart count badge when cart has items', () => {

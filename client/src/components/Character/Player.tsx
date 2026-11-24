@@ -3,10 +3,11 @@ import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useKeys } from '../../hooks/useKeys'
 import { useStore } from '../../hooks/useStore'
+import { useShallow } from 'zustand/react/shallow'
 import { useMouseLock } from '../../hooks/useMouseLock'
 import { usePlayerKeyboard } from '../../hooks/usePlayerKeyboard'
 import { checkProximity } from '../../hooks/useProximity'
-import { TVS } from '../../data/storeLayout'
+import { TVS, type Seat } from '../../data/storeLayout'
 import CharacterMesh from './CharacterMesh'
 import { resolveCollisions, lerp, getMovementVector } from './playerLogic'
 import {
@@ -28,7 +29,7 @@ function getShelfCameraTarget(shelf: Pick<Shelf, 'pos' | 'side'>) {
   }
 }
 
-function getSeatCameraTarget(seat: import('../../data/storeLayout').Seat) {
+function getSeatCameraTarget(seat: Seat) {
   const tv = TVS.find(t => t.id === seat.tv) ?? TVS[0]
   const [seatX, , seatZ] = seat.pos
   return {
@@ -46,15 +47,22 @@ export default function Player() {
 
   const camYawRef  = useRef(0) // 0 = camera directly behind player
   const velocityRef = useRef(new THREE.Vector3())
+  const lastSeatRef = useRef<Seat | null>(null) // seat we were on, so standing up can step off it
 
-  const shopOpen         = useStore(s => s.shopOpen)
-  const checkoutOpen     = useStore(s => s.checkoutOpen)
-  const filterOpen       = useStore(s => s.filterOpen)
-  const introComplete    = useStore(s => s.introComplete)
-  const shelfFocus       = useStore(s => s.shelfFocus)
-  const watching         = useStore(s => s.watching)
-  const selectedPlatform = useStore(s => s.selectedPlatform)
-  const selectedGenre    = useStore(s => s.selectedGenre)
+  const {
+    shopOpen, checkoutOpen, filterOpen,
+    introComplete, shelfFocus, watching,
+    selectedPlatform, selectedGenre,
+  } = useStore(useShallow(s => ({
+    shopOpen:         s.shopOpen,
+    checkoutOpen:     s.checkoutOpen,
+    filterOpen:       s.filterOpen,
+    introComplete:    s.introComplete,
+    shelfFocus:       s.shelfFocus,
+    watching:         s.watching,
+    selectedPlatform: s.selectedPlatform,
+    selectedGenre:    s.selectedGenre,
+  })))
 
   const anyModalOpen = shopOpen || checkoutOpen || filterOpen || !!shelfFocus || !!watching
 
@@ -69,12 +77,24 @@ export default function Player() {
     // ── Seated in the Play Zone ──
     if (watching) {
       const { seat } = watching
+      lastSeatRef.current = seat
       playerPos.set(seat.pos[0], seat.seatHeight + SEAT_Y_OFFSET - HIP_HEIGHT, seat.pos[2])
       groupRef.current.rotation.y = SEATED_FACE_ROTATION
       const { camPos, lookAt } = getSeatCameraTarget(seat)
       camera.position.lerp(camPos, 1 - Math.exp(-4 * delta))
       camera.lookAt(lookAt)
       return
+    }
+
+    // ── Just stood up (E, Esc or the Stand up button) ──
+    // The seated pose sinks the body below the floor to sit the hips on the seat;
+    // put the player back on the floor in front of the seat, facing the TVs.
+    if (lastSeatRef.current) {
+      playerPos.set(...lastSeatRef.current.standPos)
+      groupRef.current.rotation.y = SEATED_FACE_ROTATION
+      velocityRef.current.set(0, 0, 0)
+      camYawRef.current = 0
+      lastSeatRef.current = null
     }
 
     // ── Shelf focus — lock camera to shelf view ──

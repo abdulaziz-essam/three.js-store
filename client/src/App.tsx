@@ -37,7 +37,6 @@ export default function App() {
         style={{ width: '100vw', height: '100vh' }}
       >
         <Scene />
-        {/* Compile all shaders + upload textures up front so walking around doesn't hitch */}
         <Preload all />
         <EffectComposer multisampling={MSAA_SAMPLES}>
           <Bloom

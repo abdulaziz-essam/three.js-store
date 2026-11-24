@@ -10,7 +10,7 @@ interface IntroStop {
 
 const INTRO_STOPS: IntroStop[] = [
   {
-    label: 'Welcome to Pixel Vault',
+    label: 'Welcome to AEK Store',
     sub: 'Your ultimate video game destination',
     games: [],
     accent: '#cc0000',

@@ -21,7 +21,7 @@ export default function WatchPanel() {
       <div className="watch-info">
         <div className="watch-now">▶ NOW PLAYING ON TV</div>
         <h2 className="watch-title">{current.title} — Official Trailer</h2>
-        <div className="watch-meta">Pixel Vault · {current.genre} · ★ {current.rating}</div>
+        <div className="watch-meta">AEK Store · {current.genre} · ★ {current.rating}</div>
         <div className="watch-actions">
           <button className="watch-btn primary" onClick={() => selectGame(current)}>
             Get it · ${current.price}

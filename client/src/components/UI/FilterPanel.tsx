@@ -1,12 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useStore } from '../../hooks/useStore'
 import { useShallow } from 'zustand/react/shallow'
+import { useFilterKeyboard } from '../../hooks/useFilterKeyboard'
 import { GAMES } from '../../data/games'
 import { DEVICES } from '../../data/devices'
 
 const ALL_GENRES = [...new Set(GAMES.map(g => g.genre))]
 
 type FilterRow = 'device' | 'genre'
+
+function FilterChip({ label, icon, active, selected }: {
+  label: string
+  icon?: string
+  active: boolean
+  selected: boolean
+}) {
+  return (
+    <div className={`filter-chip ${selected ? 'selected' : ''} ${active ? 'active' : ''}`}>
+      {icon && <span className="filter-chip-icon">{icon}</span>}
+      <span>{label}</span>
+    </div>
+  )
+}
 
 export default function FilterPanel() {
   const {
@@ -29,43 +44,36 @@ export default function FilterPanel() {
   const [focusedRow, setFocusedRow] = useState<FilterRow>('device')
 
   useEffect(() => {
-    if (filterOpen) {
-      setDeviceIndex(Math.max(0, DEVICES.findIndex(d => d.id === selectedPlatform)))
-      setGenreIndex(selectedGenre ? Math.max(0, ALL_GENRES.indexOf(selectedGenre)) : 0)
-      setFocusedRow('device')
-    }
+    if (!filterOpen) return
+    setDeviceIndex(Math.max(0, DEVICES.findIndex(d => d.id === selectedPlatform)))
+    setGenreIndex(selectedGenre ? Math.max(0, ALL_GENRES.indexOf(selectedGenre)) : 0)
+    setFocusedRow('device')
   }, [filterOpen, selectedPlatform, selectedGenre])
 
-  useEffect(() => {
-    if (!filterOpen) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
-        const direction = e.code === 'ArrowRight' ? 1 : -1
-        if (focusedRow === 'device') {
-          setDeviceIndex(current => (current + direction + DEVICES.length) % DEVICES.length)
-        } else {
-          setGenreIndex(current => (current + direction + ALL_GENRES.length) % ALL_GENRES.length)
-        }
-      }
-      if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
-        setFocusedRow(current => current === 'device' ? 'genre' : 'device')
-        e.preventDefault()
-      }
-      if (e.code === 'Enter') {
-        setFilter(DEVICES[deviceIndex].id, ALL_GENRES[genreIndex])
-      }
-      if (e.code === 'Escape' || e.code === 'KeyF') {
-        closeFilter()
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [filterOpen, focusedRow, deviceIndex, genreIndex, setFilter, closeFilter])
+  const toggleRow = useCallback(
+    () => setFocusedRow(r => r === 'device' ? 'genre' : 'device'),
+    []
+  )
+  const confirm = useCallback(
+    () => setFilter(DEVICES[deviceIndex].id, ALL_GENRES[genreIndex]),
+    [deviceIndex, genreIndex, setFilter]
+  )
+
+  useFilterKeyboard({
+    active:        filterOpen,
+    focusedRow,
+    genreCount:    ALL_GENRES.length,
+    onDeviceIndex: setDeviceIndex,
+    onGenreIndex:  setGenreIndex,
+    onRowToggle:   toggleRow,
+    onConfirm:     confirm,
+    onClose:       closeFilter,
+  })
 
   if (!filterOpen) return null
 
   const matchCount = GAMES.filter(
-    game => game.platform.includes(DEVICES[deviceIndex].id) && game.genre === ALL_GENRES[genreIndex]
+    g => g.platform.includes(DEVICES[deviceIndex].id) && g.genre === ALL_GENRES[genreIndex]
   ).length
 
   return (
@@ -77,37 +85,31 @@ export default function FilterPanel() {
         <div className="filter-eyebrow">[ F ] FILTER GAMES</div>
         <h2 className="filter-title">CHOOSE YOUR SETUP</h2>
 
-        {/* Device row */}
         <div className={`filter-section ${focusedRow === 'device' ? 'focused' : ''}`}>
-          <div className="filter-label">
-            {focusedRow === 'device' ? '▶ ' : '  '}PLATFORM
-          </div>
+          <div className="filter-label">{focusedRow === 'device' ? '▶ ' : '  '}PLATFORM</div>
           <div className="filter-row">
             {DEVICES.map((device, index) => (
-              <div
+              <FilterChip
                 key={device.id}
-                className={`filter-chip ${index === deviceIndex && focusedRow === 'device' ? 'selected' : ''} ${index === deviceIndex ? 'active' : ''}`}
-              >
-                <span className="filter-chip-icon">{device.icon}</span>
-                <span>{device.label}</span>
-              </div>
+                label={device.label}
+                icon={device.icon}
+                active={index === deviceIndex}
+                selected={index === deviceIndex && focusedRow === 'device'}
+              />
             ))}
           </div>
         </div>
 
-        {/* Genre row */}
         <div className={`filter-section ${focusedRow === 'genre' ? 'focused' : ''}`}>
-          <div className="filter-label">
-            {focusedRow === 'genre' ? '▶ ' : '  '}GENRE
-          </div>
+          <div className="filter-label">{focusedRow === 'genre' ? '▶ ' : '  '}GENRE</div>
           <div className="filter-row genre-row">
             {ALL_GENRES.map((genre, index) => (
-              <div
+              <FilterChip
                 key={genre}
-                className={`filter-chip ${index === genreIndex && focusedRow === 'genre' ? 'selected' : ''} ${index === genreIndex ? 'active' : ''}`}
-              >
-                {genre}
-              </div>
+                label={genre}
+                active={index === genreIndex}
+                selected={index === genreIndex && focusedRow === 'genre'}
+              />
             ))}
           </div>
         </div>

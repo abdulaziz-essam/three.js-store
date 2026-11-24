@@ -1,4 +1,4 @@
-# Pixel Vault — 3D Video Game Store
+# AEK Store — 3D Video Game Store
 
 An interactive 3D game store built with React and Three.js. Walk around, browse games, add to cart, and checkout using in-game currency.
 

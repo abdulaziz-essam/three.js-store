@@ -1,5 +1,6 @@
 import { useStore } from '../../hooks/useStore'
 import { useShallow } from 'zustand/react/shallow'
+import { handleImgError } from '../../utils/handleImgError'
 
 const MAX_STAR_RATING = 5
 const FILLED_STAR = '★'
@@ -21,10 +22,9 @@ export default function ShopModal() {
 
   if (!shopOpen || !selected) return null
 
-  const game    = selected
-  const isOwned = owned.has(game.id)
-  const inCart  = cart.some(g => g.id === game.id)
-
+  const game        = selected
+  const isOwned     = owned.has(game.id)
+  const inCart      = cart.some(g => g.id === game.id)
   const filledStars = FILLED_STAR.repeat(Math.floor(game.rating))
   const emptyStars  = EMPTY_STAR.repeat(MAX_STAR_RATING - Math.floor(game.rating))
 
@@ -35,23 +35,16 @@ export default function ShopModal() {
         style={{ '--game-color': game.color, '--game-accent': game.accent } as React.CSSProperties}
         onClick={e => e.stopPropagation()}
       >
-        {/* Neon corners */}
         <div className="corner tl" /><div className="corner tr" />
         <div className="corner bl" /><div className="corner br" />
 
         <div className="modal-body">
-          {/* Cover */}
           <div className="modal-cover-wrap" style={{ borderColor: game.color, boxShadow: `0 0 30px ${game.color}66` }}>
             <img
               src={game.cover}
               alt={game.title}
               className="modal-cover-img"
-              onError={e => {
-                const img = e.currentTarget
-                img.style.display = 'none';
-                (img.nextSibling as HTMLElement | null)?.style &&
-                  ((img.nextSibling as HTMLElement).style.display = 'flex')
-              }}
+              onError={handleImgError}
             />
             <div
               className="modal-cover-fallback"
@@ -61,7 +54,6 @@ export default function ShopModal() {
             </div>
           </div>
 
-          {/* Info */}
           <div className="modal-info">
             {game.tag && (
               <div className="modal-tag" style={{ background: game.color, color: '#000' }}>

@@ -30,6 +30,8 @@ interface StoreState {
   toast: Toast | null
   selectedPlatform: string | null
   selectedGenre: string | null
+  /** Stop-motion intro video that plays when the site opens */
+  storyComplete: boolean
   introComplete: boolean
   introStep: number
   filterOpen: boolean
@@ -50,6 +52,7 @@ interface StoreState {
   closeCheckout: () => void
   nextIntroStep: (total: number) => void
   completeIntro: () => void
+  completeStory: () => void
   openFilter: () => void
   closeFilter: () => void
   setFilter: (device: string, genre: string) => void
@@ -77,6 +80,7 @@ export const useStore = create<StoreState>((set, get) => ({
   toast: null,
   selectedPlatform: 'pc',
   selectedGenre: null,
+  storyComplete: false,
   introComplete: false,
   introStep: 0,
   filterOpen: false,
@@ -102,6 +106,7 @@ export const useStore = create<StoreState>((set, get) => ({
       : { introStep: s.introStep + 1 }
   ),
   completeIntro: () => set({ introComplete: true }),
+  completeStory: () => set({ storyComplete: true }),
   openFilter: () => set({ filterOpen: true }),
   closeFilter: () => set({ filterOpen: false }),
   setFilter: (device, genre) => set({ selectedPlatform: device, selectedGenre: genre, filterOpen: false }),

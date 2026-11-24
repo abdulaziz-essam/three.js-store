@@ -3,7 +3,6 @@ import * as THREE from 'three'
 import { useStore } from './useStore'
 import { TVS } from '../data/storeLayout'
 import type { Seat } from '../data/storeLayout'
-import { SEATED_FACE_ROTATION } from '../components/Character/playerConstants'
 
 interface UsePlayerKeyboardOptions {
   /** Ref to the player group so getUp() can reposition it */
@@ -43,15 +42,8 @@ export function usePlayerKeyboard({
       document.exitPointerLock()
     }
 
-    const getUp = () => {
-      const seat = useStore.getState().watching?.seat
-      standUp()
-      if (seat && groupRef.current) {
-        groupRef.current.position.set(...seat.standPos)
-        groupRef.current.rotation.y = SEATED_FACE_ROTATION
-        camYawRef.current = 0
-      }
-    }
+    // Player resets position/camera after any stand-up (keyboard or Stand up button)
+    const getUp = () => standUp()
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'Escape') {

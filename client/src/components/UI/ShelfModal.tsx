@@ -1,12 +1,19 @@
 import { useStore } from '../../hooks/useStore'
 import { useShallow } from 'zustand/react/shallow'
 import { GAMES } from '../../data/games'
+import { handleImgError } from '../../utils/handleImgError'
 
 const SHELF_GAME_COUNT = 9
 const SHELF_GAMES = GAMES.slice(0, SHELF_GAME_COUNT)
 
 export default function ShelfModal() {
-  const { shelfFocus, unfocusShelf, addToCart, owned, cart } = useStore(useShallow(s => ({ shelfFocus: s.shelfFocus, unfocusShelf: s.unfocusShelf, addToCart: s.addToCart, owned: s.owned, cart: s.cart })))
+  const { shelfFocus, unfocusShelf, addToCart, owned, cart } = useStore(useShallow(s => ({
+    shelfFocus:   s.shelfFocus,
+    unfocusShelf: s.unfocusShelf,
+    addToCart:    s.addToCart,
+    owned:        s.owned,
+    cart:         s.cart,
+  })))
   if (!shelfFocus) return null
 
   return (
@@ -40,11 +47,7 @@ export default function ShelfModal() {
                     src={game.cover}
                     alt={game.title}
                     className="shelf-game-img"
-                    onError={e => {
-                      const img = e.currentTarget
-                      img.style.display = 'none';
-                      (img.nextSibling as HTMLElement | null)?.style && ((img.nextSibling as HTMLElement).style.display = 'flex')
-                    }}
+                    onError={handleImgError}
                   />
                   <div
                     className="shelf-game-fallback"

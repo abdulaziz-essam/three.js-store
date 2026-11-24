@@ -1,4 +1,5 @@
 import type { Game } from '../../../data/games'
+import { handleImgError } from '../../../utils/handleImgError'
 
 interface IntroGameCardProps {
   game: Game
@@ -16,11 +17,7 @@ export default function IntroGameCard({ game, index }: IntroGameCardProps) {
           src={game.cover}
           alt={game.title}
           className="intro-game-img"
-          onError={e => {
-            const img = e.currentTarget
-            img.style.display = 'none';
-            (img.nextSibling as HTMLElement | null)?.style && ((img.nextSibling as HTMLElement).style.display = 'flex')
-          }}
+          onError={handleImgError}
         />
         <div className="intro-game-fallback" style={{ background: game.color + '33' }}>
           {game.title}

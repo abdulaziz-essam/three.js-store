@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useStore } from '../../../hooks/useStore'
+import { useShallow } from 'zustand/react/shallow'
 import { useIntroKeyboard } from '../../../hooks/useIntroKeyboard'
 import INTRO_STOPS from './introStops'
 import IntroGameCard from './IntroGameCard'
@@ -7,9 +8,11 @@ import IntroDots from './IntroDots'
 import './Intro.css'
 
 export default function IntroOverlay() {
-  const introStep     = useStore(s => s.introStep)
-  const nextIntroStep = useStore(s => s.nextIntroStep)
-  const completeIntro = useStore(s => s.completeIntro)
+  const { introStep, nextIntroStep, completeIntro } = useStore(useShallow(s => ({
+    introStep:     s.introStep,
+    nextIntroStep: s.nextIntroStep,
+    completeIntro: s.completeIntro,
+  })))
 
   const stop   = INTRO_STOPS[introStep]
   const isLast = introStep === INTRO_STOPS.length - 1
@@ -21,7 +24,7 @@ export default function IntroOverlay() {
   return (
     <div className="intro-overlay" key={introStep}>
       <div className="intro-content">
-        <div className="intro-eyebrow" style={{ color: stop.accent }}>PIXEL VAULT</div>
+        <div className="intro-eyebrow" style={{ color: stop.accent }}>AEK STORE</div>
         <div className="intro-title">{stop.label}</div>
         <div className="intro-sub">{stop.sub}</div>
 

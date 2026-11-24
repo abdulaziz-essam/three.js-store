@@ -5,8 +5,8 @@ describe('INTRO_STOPS', () => {
     expect(INTRO_STOPS).toHaveLength(5)
   })
 
-  it('first stop has label "Welcome to Pixel Vault"', () => {
-    expect(INTRO_STOPS[0].label).toBe('Welcome to Pixel Vault')
+  it('first stop has label "Welcome to AEK Store"', () => {
+    expect(INTRO_STOPS[0].label).toBe('Welcome to AEK Store')
   })
 
   it('first stop has an empty games array', () => {

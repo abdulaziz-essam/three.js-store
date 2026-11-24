@@ -30,11 +30,11 @@ describe('SelectionScreen', () => {
     mockHook.mockReturnValue(defaultHookValue())
   })
 
-  it('shows the PIXEL VAULT title on the enter tab', () => {
+  it('shows the AEK STORE title on the enter tab', () => {
     const { container } = render(<SelectionScreen />)
     const title = container.querySelector('.sel-panel-enter-title')
-    expect(title?.textContent).toContain('PIXEL')
-    expect(title?.textContent).toContain('VAULT')
+    expect(title?.textContent).toContain('AEK')
+    expect(title?.textContent).toContain('STORE')
   })
 
   it('enter button works without a profile and calls quickEnter', () => {
