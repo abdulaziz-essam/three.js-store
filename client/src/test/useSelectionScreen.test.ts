@@ -104,3 +104,26 @@ describe('useSelectionScreen — handleEnter', () => {
     expect(useStore.getState().profileComplete).toBe(true)
   })
 })
+
+describe('useSelectionScreen — quickEnter', () => {
+  it('without a profile: enters the store with no filters so every game shows', () => {
+    const { result } = renderHook(() => useSelectionScreen())
+    act(() => result.current.quickEnter())
+    const s = useStore.getState()
+    expect(s.introComplete).toBe(true)
+    expect(s.selectedPlatform).toBeNull()
+    expect(s.selectedGenre).toBeNull()
+    expect(s.profileComplete).toBe(true) // closes the menu
+  })
+
+  it('with a profile: enters using the chosen platform and genre', () => {
+    const { result } = renderHook(() => useSelectionScreen())
+    act(() => result.current.selectDevice('ps5'))
+    act(() => result.current.setGenre('Action'))
+    act(() => result.current.quickEnter())
+    const s = useStore.getState()
+    expect(s.introComplete).toBe(true)
+    expect(s.selectedPlatform).toBe('ps5')
+    expect(s.selectedGenre).toBe('Action')
+  })
+})

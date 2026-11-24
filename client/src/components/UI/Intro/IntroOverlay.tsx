@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useCallback } from 'react'
 import { useStore } from '../../../hooks/useStore'
+import { useIntroKeyboard } from '../../../hooks/useIntroKeyboard'
 import INTRO_STOPS from './introStops'
 import IntroGameCard from './IntroGameCard'
 import IntroDots from './IntroDots'
@@ -9,17 +10,13 @@ export default function IntroOverlay() {
   const introStep     = useStore(s => s.introStep)
   const nextIntroStep = useStore(s => s.nextIntroStep)
   const completeIntro = useStore(s => s.completeIntro)
-  const stop          = INTRO_STOPS[introStep]
-  const isLast        = introStep === INTRO_STOPS.length - 1
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') completeIntro()
-      else nextIntroStep(INTRO_STOPS.length)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [introStep, completeIntro, nextIntroStep])
+  const stop   = INTRO_STOPS[introStep]
+  const isLast = introStep === INTRO_STOPS.length - 1
+
+  const advance = useCallback(() => nextIntroStep(INTRO_STOPS.length), [nextIntroStep])
+
+  useIntroKeyboard({ onNext: advance, onSkip: completeIntro })
 
   return (
     <div className="intro-overlay" key={introStep}>
@@ -30,8 +27,8 @@ export default function IntroOverlay() {
 
         {stop.games.length > 0 && (
           <div className="intro-games">
-            {stop.games.map((game, i) => (
-              <IntroGameCard key={game.id} game={game} index={i} />
+            {stop.games.map((game, index) => (
+              <IntroGameCard key={game.id} game={game} index={index} />
             ))}
           </div>
         )}
@@ -49,7 +46,7 @@ export default function IntroOverlay() {
             <button
               className="intro-btn intro-btn-next"
               style={{ '--accent': stop.accent } as React.CSSProperties}
-              onClick={() => nextIntroStep(INTRO_STOPS.length)}
+              onClick={advance}
             >
               Next
             </button>

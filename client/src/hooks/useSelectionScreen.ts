@@ -6,6 +6,7 @@ const ALL_GENRES = [...new Set(GAMES.map((g) => g.genre))]
 
 export function useSelectionScreen() {
   const setPreference = useStore((s) => s.setPreference)
+  const enterStore = useStore((s) => s.enterStore)
   const [device, setDevice] = useState<string | null>(null)
   const [genre, setGenre] = useState<string | null>(null)
 
@@ -32,6 +33,12 @@ export function useSelectionScreen() {
 
   const canEnter = Boolean(device && genre && matchCount != null && matchCount > 0)
 
+  /** Main menu button: always works. Uses the profile if one is set up, otherwise shows every game. */
+  function quickEnter() {
+    if (canEnter) handleEnter()
+    else enterStore()
+  }
+
   return {
     device,
     genre,
@@ -41,6 +48,7 @@ export function useSelectionScreen() {
     ALL_GENRES,
     matchCount,
     handleEnter,
+    quickEnter,
     canEnter,
   }
 }

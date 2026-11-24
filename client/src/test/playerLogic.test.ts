@@ -21,6 +21,7 @@ describe('lerp', () => {
 })
 
 describe('resolveCollisions', () => {
+  // Store is 24 x 34 m: walls at x = ±12 and z = ±17 (see data/storeLayout.ts). Player radius = 0.35.
   it('position far from all colliders — not modified', () => {
     const pos = new THREE.Vector3(0, 0, 0)
     const vel = new THREE.Vector3(1, 0, 1)
@@ -31,62 +32,66 @@ describe('resolveCollisions', () => {
     expect(vel.z).toBe(1)
   })
 
-  it('position overlapping left wall (cx:-9) — pushed right, vel.x zeroed', () => {
-    // Left wall: cx=-9, hw=0.1, hd=13. Player radius=0.35.
-    // Collision X zone: |pos.x - (-9)| < 0.45 → pos.x in (-9.45, -8.55)
-    // Place player on the floor-side of the wall (x > cx) so sign is positive → pushed right
-    const pos = new THREE.Vector3(-8.7, 0, 0)
+  it('position overlapping left wall (cx:-12) — pushed right, vel.x zeroed', () => {
+    // Between shelves (shelves sit at z = 4.5, 0, -4.5, -9) so only the wall applies
+    const pos = new THREE.Vector3(-11.7, 0, 13)
     const vel = new THREE.Vector3(-2, 0, 0)
     resolveCollisions(pos, vel)
-    // Should be pushed to the right (x increases, away from wall center)
-    expect(pos.x).toBeGreaterThan(-8.7)
+    expect(pos.x).toBeGreaterThan(-11.7)
     expect(vel.x).toBe(0)
   })
 
-  it('position overlapping right wall (cx:9) — pushed left, vel.x zeroed', () => {
-    // Right wall: cx=9, hw=0.1. Place player on floor-side (x < cx) → pushed left
-    const pos = new THREE.Vector3(8.7, 0, 0)
+  it('position overlapping right wall (cx:12) — pushed left, vel.x zeroed', () => {
+    const pos = new THREE.Vector3(11.7, 0, -13)
     const vel = new THREE.Vector3(2, 0, 0)
     resolveCollisions(pos, vel)
-    expect(pos.x).toBeLessThan(8.7)
+    expect(pos.x).toBeLessThan(11.7)
     expect(vel.x).toBe(0)
   })
 
-  it('position overlapping checkout counter — pushed out correctly', () => {
-    // Counter: cx=0, cz=-10, hw=2.5, hd=0.8. Player radius=0.35.
-    // Collision zone: x in (-2.85, 2.85) and z in (-11.15, -8.85)
-    // Place player directly in front of counter along z axis
-    const pos = new THREE.Vector3(0, 0, -9.0)
+  it('position overlapping checkout counter — pushed back into the aisle', () => {
+    // Counter: cx=8, cz=12.5, hw=0.65, hd=3.05.
+    // overlapX = (0.65+0.35) - |7.2 - 8| = 0.2 ; overlapZ = (3.05+0.35) - 0 = 3.4 → push along X
+    const pos = new THREE.Vector3(7.2, 0, 12.5)
+    const vel = new THREE.Vector3(1, 0, 0.5)
+    resolveCollisions(pos, vel)
+    expect(pos.x).toBeCloseTo(7.0)
+    expect(vel.x).toBe(0)
+    expect(vel.z).toBe(0.5)
+  })
+
+  it('position overlapping a display pedestal — pushed out', () => {
+    // Spider-Man 2 pedestal at (-5.4, 3.5), collider half-size 0.6
+    const pos = new THREE.Vector3(-5.4, 0, 3.5 + 0.8)
     const vel = new THREE.Vector3(0, 0, -1)
     resolveCollisions(pos, vel)
-    // Counter blocks from z=-11.15 to -8.85, player at z=-9 is inside
-    // Should push player out on z axis since overlapZ < overlapX here
-    // overlapX = (2.5+0.35) - |0 - 0| = 2.85
-    // overlapZ = (0.8+0.35) - |-9.0 - (-10)| = 1.15 - 1.0 = 0.15
-    // overlapZ < overlapX so push along Z
+    expect(pos.z).toBeCloseTo(3.5 + 0.95)
     expect(vel.z).toBe(0)
-    // Velocity on X should be unaffected
+  })
+
+  it('position overlapping a console kiosk — pushed out', () => {
+    // PlayStation kiosk at (-8.6, 12.4), hw=0.45 → x-extent with player radius: 0.8
+    const pos = new THREE.Vector3(-8.6 + 0.7, 0, 12.4)
+    const vel = new THREE.Vector3(-1, 0, 0)
+    resolveCollisions(pos, vel)
+    expect(pos.x).toBeCloseTo(-8.6 + 0.8)
     expect(vel.x).toBe(0)
   })
 
   it('velocity not zeroed on the non-collision axis', () => {
-    // Use left wall collision — player on floor-side of left wall with z-velocity too
-    const pos = new THREE.Vector3(-8.7, 0, 0)
+    const pos = new THREE.Vector3(-11.7, 0, 13)
     const vel = new THREE.Vector3(-1, 0, 3)
     resolveCollisions(pos, vel)
-    // X should be zeroed (collision axis), Z should be untouched
     expect(vel.x).toBe(0)
     expect(vel.z).toBe(3)
   })
 
   it('position clearly inside back wall collider — pushed out and z vel zeroed', () => {
-    // Back wall: cx=0, cz=-13, hw=9, hd=0.1. Player radius=0.35.
-    // Collision Z zone: |pos.z - (-13)| < 0.45 → pos.z in (-13.45, -12.55)
-    // Place player on floor-side (z > cz = -13) so pushed toward positive z
-    const pos = new THREE.Vector3(0, 0, -12.7)
+    // Back wall: cz=-17. Use x=3.5 to stay clear of the play-zone furniture
+    const pos = new THREE.Vector3(3.5, 0, -16.7)
     const vel = new THREE.Vector3(0, 0, -2)
     resolveCollisions(pos, vel)
-    expect(pos.z).toBeGreaterThan(-12.7)
+    expect(pos.z).toBeGreaterThan(-16.7)
     expect(vel.z).toBe(0)
   })
 })

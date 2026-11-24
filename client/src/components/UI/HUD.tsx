@@ -1,16 +1,40 @@
 import { useStore } from '../../hooks/useStore'
+import { useShallow } from 'zustand/react/shallow'
 import IntroOverlay from './Intro/IntroOverlay'
 import SelectionScreen from './SelectionScreen'
 
 export default function HUD() {
-  const { balance, owned, nearbyGame, nearbyCounter, nearbyShelf, shelfFocus,
-          shopOpen, checkoutOpen, filterOpen, introComplete, profileComplete,
-          cart, toast, selectedPlatform, selectedGenre } = useStore()
+  const {
+    balance, owned, cart, toast,
+    nearbyGame, nearbyCounter, nearbyShelf, nearbySeat,
+    shelfFocus, watching,
+    shopOpen, checkoutOpen, filterOpen,
+    introComplete, profileComplete,
+    selectedPlatform, selectedGenre,
+  } = useStore(useShallow(s => ({
+    balance:          s.balance,
+    owned:            s.owned,
+    cart:             s.cart,
+    toast:            s.toast,
+    nearbyGame:       s.nearbyGame,
+    nearbyCounter:    s.nearbyCounter,
+    nearbyShelf:      s.nearbyShelf,
+    nearbySeat:       s.nearbySeat,
+    shelfFocus:       s.shelfFocus,
+    watching:         s.watching,
+    shopOpen:         s.shopOpen,
+    checkoutOpen:     s.checkoutOpen,
+    filterOpen:       s.filterOpen,
+    introComplete:    s.introComplete,
+    profileComplete:  s.profileComplete,
+    selectedPlatform: s.selectedPlatform,
+    selectedGenre:    s.selectedGenre,
+  })))
 
   if (!profileComplete) return <SelectionScreen />
-  if (!introComplete) return <IntroOverlay />
+  if (!introComplete)   return <IntroOverlay />
 
-  const modalOpen = shopOpen || checkoutOpen || filterOpen || shelfFocus
+  const anyOverlayOpen = shopOpen || checkoutOpen || filterOpen || !!shelfFocus || !!watching
 
   return (
     <>
@@ -31,14 +55,14 @@ export default function HUD() {
         </div>
       </div>
 
-      {!modalOpen && (
+      {!anyOverlayOpen && (
         <div className="hud-controls">
           <span>WASD — Move</span>
           <span>Mouse — Look</span>
           <span className="hud-filter-hint">
             [ F ] Filter
             {selectedPlatform ? ` · ${selectedPlatform.toUpperCase()}` : ''}
-            {selectedGenre ? ` · ${selectedGenre}` : ''}
+            {selectedGenre    ? ` · ${selectedGenre}`                  : ''}
           </span>
           {nearbyCounter && cart.length > 0 && (
             <span className="hud-interact pulse">[ E ] Checkout ({cart.length} items)</span>
@@ -46,7 +70,10 @@ export default function HUD() {
           {nearbyCounter && cart.length === 0 && (
             <span className="hud-counter">Counter — Add games to basket first</span>
           )}
-          {!nearbyCounter && nearbyShelf && !nearbyGame && (
+          {nearbySeat && (
+            <span className="hud-interact pulse">[ E ] Sit &amp; watch trailers</span>
+          )}
+          {!nearbySeat && !nearbyCounter && nearbyShelf && !nearbyGame && (
             <span className="hud-interact pulse">[ E ] Browse Shelf</span>
           )}
           {!nearbyCounter && !nearbyShelf && nearbyGame && (

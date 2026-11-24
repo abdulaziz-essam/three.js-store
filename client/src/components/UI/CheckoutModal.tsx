@@ -1,10 +1,25 @@
 import { useStore } from '../../hooks/useStore'
+import { useShallow } from 'zustand/react/shallow'
+
+const COLOR_CREDIT_OK   = '#00ff88'
+const COLOR_CREDIT_FAIL = '#ff00aa'
 
 export default function CheckoutModal() {
-  const { checkoutOpen, closeCheckout, cart, removeFromCart, checkout, balance } = useStore()
+  const {
+    checkoutOpen, closeCheckout,
+    cart, removeFromCart, checkout, balance,
+  } = useStore(useShallow(s => ({
+    checkoutOpen:   s.checkoutOpen,
+    closeCheckout:  s.closeCheckout,
+    cart:           s.cart,
+    removeFromCart: s.removeFromCart,
+    checkout:       s.checkout,
+    balance:        s.balance,
+  })))
+
   if (!checkoutOpen) return null
 
-  const total = cart.reduce((sum, g) => sum + g.price, 0)
+  const total     = cart.reduce((sum, game) => sum + game.price, 0)
   const canAfford = balance >= total
 
   return (
@@ -23,10 +38,17 @@ export default function CheckoutModal() {
             <div className="checkout-items">
               {cart.map(game => (
                 <div key={game.id} className="checkout-item">
-                  <div className="checkout-item-dot" style={{ background: game.color, boxShadow: `0 0 8px ${game.color}` }} />
+                  <div
+                    className="checkout-item-dot"
+                    style={{ background: game.color, boxShadow: `0 0 8px ${game.color}` }}
+                  />
                   <span className="checkout-item-title">{game.title}</span>
-                  <span className="checkout-item-price" style={{ color: game.color }}>${game.price}</span>
-                  <button className="checkout-item-remove" onClick={() => removeFromCart(game.id)}>✕</button>
+                  <span className="checkout-item-price" style={{ color: game.color }}>
+                    ${game.price}
+                  </span>
+                  <button className="checkout-item-remove" onClick={() => removeFromCart(game.id)}>
+                    ✕
+                  </button>
                 </div>
               ))}
             </div>
@@ -40,7 +62,9 @@ export default function CheckoutModal() {
               </div>
               <div className="checkout-row">
                 <span>Balance</span>
-                <span style={{ color: canAfford ? '#00ff88' : '#ff00aa' }}>${balance.toFixed(2)}</span>
+                <span style={{ color: canAfford ? COLOR_CREDIT_OK : COLOR_CREDIT_FAIL }}>
+                  ${balance.toFixed(2)}
+                </span>
               </div>
               {!canAfford && (
                 <div className="checkout-row checkout-warn">Not enough credits!</div>

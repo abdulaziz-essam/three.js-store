@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { DEVICES } from '../../data/devices'
 import { useSelectionScreen } from '../../hooks/useSelectionScreen'
+import { useMenuNavigation } from '../../hooks/useMenuNavigation'
 import { GAMES } from '../../data/games'
 import '../../styles/SelectionScreen.css'
 
@@ -8,11 +9,14 @@ type MenuTab = 'enter' | 'profile' | 'options' | 'terms' | 'about'
 
 const MENU_ITEMS: { id: MenuTab; icon: string; label: string; badge?: string }[] = [
   { id: 'enter',   icon: '▶',  label: 'Enter Store' },
-  { id: 'profile', icon: '◈',  label: 'Store Profile', badge: 'SETUP' },
+  { id: 'profile', icon: '◈',  label: 'Store Profile', badge: 'OPTIONAL' },
   { id: 'options', icon: '⚙',  label: 'Options' },
   { id: 'terms',   icon: '§',  label: 'Terms & Conditions' },
   { id: 'about',   icon: '◉',  label: 'About Us' },
 ]
+
+const MENU_TAB_IDS = MENU_ITEMS.map(item => item.id)
+const PLAYER_NAME_MAX_LENGTH = 16
 
 export default function SelectionScreen() {
   const {
@@ -24,32 +28,20 @@ export default function SelectionScreen() {
     ALL_GENRES,
     matchCount,
     handleEnter,
+    quickEnter,
     canEnter,
   } = useSelectionScreen()
 
-  const [activeTab, setActiveTab] = useState<MenuTab>('enter')
+  const { activeItem: activeTab, navigateTo } = useMenuNavigation({
+    items: MENU_TAB_IDS,
+    onConfirm: quickEnter,
+  })
+
   const [playerName, setPlayerName] = useState('PLAYER_01')
   const [panelKey, setPanelKey] = useState(0)
 
-  // Keyboard navigation: left/right or up/down to switch tabs
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const tabs = MENU_ITEMS.map(m => m.id)
-      const idx = tabs.indexOf(activeTab)
-      if (e.key === 'ArrowDown') {
-        setActiveTab(tabs[(idx + 1) % tabs.length])
-      } else if (e.key === 'ArrowUp') {
-        setActiveTab(tabs[(idx - 1 + tabs.length) % tabs.length])
-      } else if (e.key === 'Enter' && activeTab === 'enter' && canEnter) {
-        handleEnter()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [activeTab, canEnter, handleEnter])
-
   function switchTab(tab: MenuTab) {
-    setActiveTab(tab)
+    navigateTo(tab)
     setPanelKey(k => k + 1)
   }
 
@@ -106,21 +98,15 @@ export default function SelectionScreen() {
               </div>
               <p className="sel-panel-enter-sub">Your digital game collection awaits</p>
 
-              <button
-                className={`sel-enter-btn ${canEnter ? '' : 'disabled'}`}
-                onClick={canEnter ? handleEnter : undefined}
-                disabled={!canEnter}
-              >
-                <span>{canEnter ? 'ENTER STORE' : 'SET UP PROFILE FIRST'}</span>
+              <button className="sel-enter-btn" onClick={quickEnter}>
+                <span>ENTER STORE</span>
               </button>
 
+              <p className="sel-enter-hint">Press ENTER or click to start</p>
               {!canEnter && (
                 <p className="sel-enter-hint">
-                  ◈ Go to STORE PROFILE to choose your platform &amp; genre
+                  ◈ Optional: set up STORE PROFILE to show only your platform &amp; genre
                 </p>
-              )}
-              {canEnter && (
-                <p className="sel-enter-hint">Press ENTER or click to start</p>
               )}
             </div>
           )}
@@ -141,9 +127,9 @@ export default function SelectionScreen() {
                   <input
                     className="sel-profile-name-input"
                     value={playerName}
-                    onChange={e => setPlayerName(e.target.value.toUpperCase().slice(0, 16))}
+                    onChange={e => setPlayerName(e.target.value.toUpperCase().slice(0, PLAYER_NAME_MAX_LENGTH))}
                     placeholder="PLAYER_01"
-                    maxLength={16}
+                    maxLength={PLAYER_NAME_MAX_LENGTH}
                     spellCheck={false}
                   />
                 </div>

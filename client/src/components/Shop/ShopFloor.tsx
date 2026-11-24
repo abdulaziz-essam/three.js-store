@@ -1,14 +1,10 @@
 import { GAMES, matchesActiveFilters } from '../../data/games'
+import { DISPLAY_SLOTS } from '../../data/storeLayout'
 import { useStore } from '../../hooks/useStore'
 import GameDisplay from './GameDisplay'
 
-// 3 rows of 4 displays in the center aisle
-const POSITIONS: [number, number, number][] = [
-  [-3.5, 0, -12], [-1.0, 0, -12], [1.5, 0, -12], [4.0, 0, -12],
-  [-3.5, 0,  -7], [-1.0, 0,  -7], [1.5, 0,  -7], [4.0, 0,  -7],
-  [-3.5, 0,  -2], [-1.0, 0,  -2], [1.5, 0,  -2], [4.0, 0,  -2],
-]
-
+// Each game has a fixed pedestal in one of the 3 themed rows (see storeLayout.ts).
+// Filtering hides games instead of shuffling them into other slots.
 export default function ShopFloor() {
   const selectedPlatform = useStore((s) => s.selectedPlatform)
   const selectedGenre = useStore((s) => s.selectedGenre)
@@ -17,9 +13,10 @@ export default function ShopFloor() {
 
   return (
     <group>
-      {filtered.map((game, i) => (
-        <GameDisplay key={game.id} game={game} position={POSITIONS[i]} />
-      ))}
+      {filtered.map((game) => {
+        const pos = DISPLAY_SLOTS[game.id]
+        return pos ? <GameDisplay key={game.id} game={game} position={pos} /> : null
+      })}
     </group>
   )
 }

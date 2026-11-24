@@ -1,32 +1,31 @@
 import * as THREE from 'three'
+import { BUILDING, COUNTER_POS as COUNTER_XYZ } from '../../data/storeLayout'
 
-export const SPEED        = 18
-export const ACCELERATION = 12
+export { DISPLAY_SLOTS, SHELVES, PLAYER_START } from '../../data/storeLayout'
+export type { Shelf } from '../../data/storeLayout'
+
+export const SPEED        = 6   // m/s — a relaxed walking pace (was 18)
+export const ACCELERATION = 10
 export const FRICTION     = 10
 
-export const CAM_DIST   = 5
-export const CAM_HEIGHT = 2.8
+export const CAM_DIST        = 5
+export const CAM_HEIGHT      = 2.8
 export const CAM_SENSITIVITY = 0.003
+export const CAM_LERP_SPEED  = 0.1   // fraction per frame for free-roam camera
+export const CAM_SHELF_LERP  = 0.06  // fraction per frame when lerping to shelf view
+export const CAM_LOOK_AHEAD  = 1.2   // y offset above player that the camera looks at
 
-export const BOUNDS = { x: 7.5, zMin: -11.5, zMax: 11.5 }
+export const ROTATION_LERP = 0.18    // fraction per frame for character body rotation
+export const VELOCITY_THRESHOLD = 0.01 // below this speed, skip movement + rotation update
+
+export const BOUNDS = { x: BUILDING.width / 2 - 0.6, zMin: -BUILDING.depth / 2 + 0.6, zMax: BUILDING.depth / 2 - 0.6 }
 
 export const INTERACT_DIST = 2.6
-export const COUNTER_DIST  = 3.5
+export const COUNTER_DIST  = 3.8
 export const SHELF_DIST    = 2.8
-export const COUNTER_POS   = new THREE.Vector3(0, 0, -10)
+export const COUNTER_POS   = new THREE.Vector3(...COUNTER_XYZ)
 
-export const DISPLAY_POSITIONS: [number, number, number][] = [
-  [-3.5, 0, -8], [-1.0, 0, -8], [1.5, 0, -8], [4.0, 0, -8],
-  [-3.5, 0, -2], [-1.0, 0, -2], [1.5, 0, -2], [4.0, 0, -2],
-]
-
-export const SHELVES = [
-  { id: 'L0', pos: [-7.5, 0, -8] as [number, number, number], side: 'left'  as const },
-  { id: 'L1', pos: [-7.5, 0, -3] as [number, number, number], side: 'left'  as const },
-  { id: 'L2', pos: [-7.5, 0,  3] as [number, number, number], side: 'left'  as const },
-  { id: 'R0', pos: [ 7.5, 0, -8] as [number, number, number], side: 'right' as const },
-  { id: 'R1', pos: [ 7.5, 0, -3] as [number, number, number], side: 'right' as const },
-  { id: 'R2', pos: [ 7.5, 0,  3] as [number, number, number], side: 'right' as const },
-]
-
-export type Shelf = typeof SHELVES[number]
+// Seated pose offsets (character mesh sits at hip height, group.position is at floor)
+export const SEAT_Y_OFFSET = 0.05    // small lift above the seat surface
+export const HIP_HEIGHT    = 0.875   // y of the hip joint in the character mesh local space
+export const SEATED_FACE_ROTATION = Math.PI // face the back wall (toward TVs)

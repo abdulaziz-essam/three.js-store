@@ -19,6 +19,7 @@ function defaultHookValue(overrides: Record<string, unknown> = {}) {
     ALL_GENRES,
     matchCount: null,
     handleEnter: vi.fn(),
+    quickEnter: vi.fn(),
     canEnter: false,
     ...overrides,
   } as any
@@ -36,19 +37,28 @@ describe('SelectionScreen', () => {
     expect(title?.textContent).toContain('VAULT')
   })
 
-  it('enter button is disabled and prompts profile setup when canEnter is false', () => {
-    render(<SelectionScreen />)
-    expect(screen.getByRole('button', { name: /SET UP PROFILE FIRST/i })).toBeDisabled()
-  })
-
-  it('enter button is enabled and calls handleEnter when canEnter is true', () => {
-    const handleEnter = vi.fn()
-    mockHook.mockReturnValue(defaultHookValue({ canEnter: true, handleEnter }))
+  it('enter button works without a profile and calls quickEnter', () => {
+    const quickEnter = vi.fn()
+    mockHook.mockReturnValue(defaultHookValue({ canEnter: false, quickEnter }))
     const { container } = render(<SelectionScreen />)
     const btn = container.querySelector('.sel-enter-btn') as HTMLButtonElement
     expect(btn).not.toBeDisabled()
+    expect(btn.textContent).toMatch(/ENTER STORE/i)
     fireEvent.click(btn)
-    expect(handleEnter).toHaveBeenCalled()
+    expect(quickEnter).toHaveBeenCalled()
+  })
+
+  it('pressing Enter on the enter tab calls quickEnter', () => {
+    const quickEnter = vi.fn()
+    mockHook.mockReturnValue(defaultHookValue({ quickEnter }))
+    render(<SelectionScreen />)
+    fireEvent.keyDown(window, { key: 'Enter' })
+    expect(quickEnter).toHaveBeenCalled()
+  })
+
+  it('store profile is marked optional in the menu', () => {
+    render(<SelectionScreen />)
+    expect(screen.getByRole('button', { name: /Store Profile/i }).textContent).toMatch(/OPTIONAL/)
   })
 
   it('switching to Store Profile tab shows the profile card', () => {

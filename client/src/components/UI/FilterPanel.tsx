@@ -1,57 +1,71 @@
 import { useEffect, useState } from 'react'
 import { useStore } from '../../hooks/useStore'
+import { useShallow } from 'zustand/react/shallow'
 import { GAMES } from '../../data/games'
 import { DEVICES } from '../../data/devices'
 
 const ALL_GENRES = [...new Set(GAMES.map(g => g.genre))]
 
-export default function FilterPanel() {
-  const { filterOpen, closeFilter, setFilter, selectedPlatform, selectedGenre } = useStore()
+type FilterRow = 'device' | 'genre'
 
-  const [devIdx, setDevIdx] = useState(() => Math.max(0, DEVICES.findIndex(d => d.id === selectedPlatform)))
-  const [genIdx, setGenIdx] = useState(() => Math.max(0, ALL_GENRES.indexOf(selectedGenre ?? '')))
-  const [focus, setFocus]   = useState<'device' | 'genre'>('device')
+export default function FilterPanel() {
+  const {
+    filterOpen, closeFilter, setFilter,
+    selectedPlatform, selectedGenre,
+  } = useStore(useShallow(s => ({
+    filterOpen:       s.filterOpen,
+    closeFilter:      s.closeFilter,
+    setFilter:        s.setFilter,
+    selectedPlatform: s.selectedPlatform,
+    selectedGenre:    s.selectedGenre,
+  })))
+
+  const [deviceIndex, setDeviceIndex] = useState(
+    () => Math.max(0, DEVICES.findIndex(d => d.id === selectedPlatform))
+  )
+  const [genreIndex, setGenreIndex] = useState(
+    () => Math.max(0, ALL_GENRES.indexOf(selectedGenre ?? ''))
+  )
+  const [focusedRow, setFocusedRow] = useState<FilterRow>('device')
 
   useEffect(() => {
     if (filterOpen) {
-      setDevIdx(Math.max(0, DEVICES.findIndex(d => d.id === selectedPlatform)))
-      setGenIdx(selectedGenre ? Math.max(0, ALL_GENRES.indexOf(selectedGenre)) : 0)
-      setFocus('device')
+      setDeviceIndex(Math.max(0, DEVICES.findIndex(d => d.id === selectedPlatform)))
+      setGenreIndex(selectedGenre ? Math.max(0, ALL_GENRES.indexOf(selectedGenre)) : 0)
+      setFocusedRow('device')
     }
   }, [filterOpen, selectedPlatform, selectedGenre])
 
   useEffect(() => {
     if (!filterOpen) return
-    const onKey = (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent) => {
       if (e.code === 'ArrowLeft' || e.code === 'ArrowRight') {
-        const dir = e.code === 'ArrowRight' ? 1 : -1
-        if (focus === 'device') {
-          setDevIdx(i => (i + dir + DEVICES.length) % DEVICES.length)
+        const direction = e.code === 'ArrowRight' ? 1 : -1
+        if (focusedRow === 'device') {
+          setDeviceIndex(current => (current + direction + DEVICES.length) % DEVICES.length)
         } else {
-          setGenIdx(i => (i + dir + ALL_GENRES.length) % ALL_GENRES.length)
+          setGenreIndex(current => (current + direction + ALL_GENRES.length) % ALL_GENRES.length)
         }
       }
       if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
-        setFocus(f => f === 'device' ? 'genre' : 'device')
+        setFocusedRow(current => current === 'device' ? 'genre' : 'device')
         e.preventDefault()
       }
       if (e.code === 'Enter') {
-        const device = DEVICES[devIdx].id
-        const genre  = ALL_GENRES[genIdx]
-        setFilter(device, genre)
+        setFilter(DEVICES[deviceIndex].id, ALL_GENRES[genreIndex])
       }
       if (e.code === 'Escape' || e.code === 'KeyF') {
         closeFilter()
       }
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [filterOpen, focus, devIdx, genIdx, setFilter, closeFilter])
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [filterOpen, focusedRow, deviceIndex, genreIndex, setFilter, closeFilter])
 
   if (!filterOpen) return null
 
   const matchCount = GAMES.filter(
-    g => g.platform.includes(DEVICES[devIdx].id) && g.genre === ALL_GENRES[genIdx]
+    game => game.platform.includes(DEVICES[deviceIndex].id) && game.genre === ALL_GENRES[genreIndex]
   ).length
 
   return (
@@ -64,35 +78,35 @@ export default function FilterPanel() {
         <h2 className="filter-title">CHOOSE YOUR SETUP</h2>
 
         {/* Device row */}
-        <div className={`filter-section ${focus === 'device' ? 'focused' : ''}`}>
+        <div className={`filter-section ${focusedRow === 'device' ? 'focused' : ''}`}>
           <div className="filter-label">
-            {focus === 'device' ? '▶ ' : '  '}PLATFORM
+            {focusedRow === 'device' ? '▶ ' : '  '}PLATFORM
           </div>
           <div className="filter-row">
-            {DEVICES.map((d, i) => (
+            {DEVICES.map((device, index) => (
               <div
-                key={d.id}
-                className={`filter-chip ${i === devIdx && focus === 'device' ? 'selected' : ''} ${i === devIdx ? 'active' : ''}`}
+                key={device.id}
+                className={`filter-chip ${index === deviceIndex && focusedRow === 'device' ? 'selected' : ''} ${index === deviceIndex ? 'active' : ''}`}
               >
-                <span className="filter-chip-icon">{d.icon}</span>
-                <span>{d.label}</span>
+                <span className="filter-chip-icon">{device.icon}</span>
+                <span>{device.label}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Genre row */}
-        <div className={`filter-section ${focus === 'genre' ? 'focused' : ''}`}>
+        <div className={`filter-section ${focusedRow === 'genre' ? 'focused' : ''}`}>
           <div className="filter-label">
-            {focus === 'genre' ? '▶ ' : '  '}GENRE
+            {focusedRow === 'genre' ? '▶ ' : '  '}GENRE
           </div>
           <div className="filter-row genre-row">
-            {ALL_GENRES.map((g, i) => (
+            {ALL_GENRES.map((genre, index) => (
               <div
-                key={g}
-                className={`filter-chip ${i === genIdx && focus === 'genre' ? 'selected' : ''} ${i === genIdx ? 'active' : ''}`}
+                key={genre}
+                className={`filter-chip ${index === genreIndex && focusedRow === 'genre' ? 'selected' : ''} ${index === genreIndex ? 'active' : ''}`}
               >
-                {g}
+                {genre}
               </div>
             ))}
           </div>

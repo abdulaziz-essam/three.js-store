@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { Game } from '../data/games'
+import type { Seat } from '../data/storeLayout'
 
 interface Shelf {
   id: string
@@ -20,11 +21,14 @@ interface StoreState {
   nearbyGame: Game | null
   nearbyCounter: boolean
   nearbyShelf: Shelf | null
+  nearbySeat: Seat | null
+  /** Sitting in the Play Zone watching a trailer on a TV */
+  watching: { seat: Seat; gameId: string } | null
   shelfFocus: Shelf | null
   shopOpen: boolean
   checkoutOpen: boolean
   toast: Toast | null
-  selectedPlatform: string
+  selectedPlatform: string | null
   selectedGenre: string | null
   introComplete: boolean
   introStep: number
@@ -34,6 +38,10 @@ interface StoreState {
   setNearbyGame: (game: Game | null) => void
   setNearbyCounter: (val: boolean) => void
   setNearbyShelf: (shelf: Shelf | null) => void
+  setNearbySeat: (seat: Seat | null) => void
+  sitAt: (seat: Seat, gameId: string) => void
+  standUp: () => void
+  watchGame: (gameId: string) => void
   focusShelf: (shelf: Shelf) => void
   unfocusShelf: () => void
   selectGame: (game: Game) => void
@@ -46,6 +54,7 @@ interface StoreState {
   closeFilter: () => void
   setFilter: (device: string, genre: string) => void
   setPreference: (device: string, genre: string) => void
+  enterStore: () => void
   completeProfile: () => void
   addToCart: (game: Game) => void
   removeFromCart: (gameId: string) => void
@@ -60,6 +69,8 @@ export const useStore = create<StoreState>((set, get) => ({
   nearbyGame: null,
   nearbyCounter: false,
   nearbyShelf: null,
+  nearbySeat: null,
+  watching: null,
   shelfFocus: null,
   shopOpen: false,
   checkoutOpen: false,
@@ -71,9 +82,14 @@ export const useStore = create<StoreState>((set, get) => ({
   filterOpen: false,
   profileComplete: false,
 
-  setNearbyGame: (game) => set({ nearbyGame: game }),
-  setNearbyCounter: (val) => set({ nearbyCounter: val }),
-  setNearbyShelf: (shelf) => set({ nearbyShelf: shelf }),
+  // Called every frame by Player: only update (and re-render listeners) when the value actually changes
+  setNearbyGame: (game) => { if (get().nearbyGame !== game) set({ nearbyGame: game }) },
+  setNearbyCounter: (val) => { if (get().nearbyCounter !== val) set({ nearbyCounter: val }) },
+  setNearbyShelf: (shelf) => { if (get().nearbyShelf !== shelf) set({ nearbyShelf: shelf }) },
+  setNearbySeat: (seat) => { if (get().nearbySeat !== seat) set({ nearbySeat: seat }) },
+  sitAt: (seat, gameId) => set({ watching: { seat, gameId }, nearbySeat: null }),
+  standUp: () => set({ watching: null }),
+  watchGame: (gameId) => set(s => (s.watching ? { watching: { ...s.watching, gameId } } : {})),
   focusShelf: (shelf) => set({ shelfFocus: shelf }),
   unfocusShelf: () => set({ shelfFocus: null }),
   selectGame: (game) => set({ selected: game, shopOpen: true }),
@@ -91,6 +107,9 @@ export const useStore = create<StoreState>((set, get) => ({
   setFilter: (device, genre) => set({ selectedPlatform: device, selectedGenre: genre, filterOpen: false }),
   setPreference: (device, genre) => set({ selectedPlatform: device, selectedGenre: genre, profileComplete: true, introComplete: true }),
   completeProfile: () => set({ profileComplete: true }),
+  // Enter without a profile: no platform/genre filter, every game is on display
+  // (profileComplete is what closes the menu in HUD)
+  enterStore: () => set({ selectedPlatform: null, selectedGenre: null, profileComplete: true, introComplete: true }),
 
   addToCart: (game) => {
     const { cart, owned } = get()

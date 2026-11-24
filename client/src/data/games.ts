@@ -9,6 +9,8 @@ export interface Game {
   accent: string
   tag?: string
   platform: string[]
+  /** YouTube video id of the game's trailer (watched on the Play Zone TVs) */
+  trailer: string
 }
 
 export const GAMES: Game[] = [
@@ -23,6 +25,7 @@ export const GAMES: Game[] = [
     accent: '#ff0066',
     tag: 'HOT',
     platform: ['pc', 'ps5', 'xbox'],
+    trailer: 'BO8lX3hDU30',
   },
   {
     id: 'eldenring',
@@ -35,6 +38,7 @@ export const GAMES: Game[] = [
     accent: '#cc8800',
     tag: 'GOTY',
     platform: ['pc', 'ps5', 'xbox'],
+    trailer: 'qqiC88f9ogU',
   },
   {
     id: 'spiderman',
@@ -47,6 +51,7 @@ export const GAMES: Game[] = [
     accent: '#0044ff',
     tag: 'NEW',
     platform: ['ps5'],
+    trailer: '9fVYKsEmuRo',
   },
   {
     id: 'tlou2',
@@ -59,6 +64,7 @@ export const GAMES: Game[] = [
     accent: '#006633',
     tag: 'SALE',
     platform: ['pc', 'ps5'],
+    trailer: 'vhII1qlcZ4E',
   },
   {
     id: 'witcher3',
@@ -71,6 +77,7 @@ export const GAMES: Game[] = [
     accent: '#cc5500',
     tag: 'CLASSIC',
     platform: ['pc', 'ps5', 'xbox', 'nintendo'],
+    trailer: 'XHrskkHf958',
   },
   {
     id: 'gow',
@@ -83,6 +90,7 @@ export const GAMES: Game[] = [
     accent: '#cc2200',
     tag: 'EPIC',
     platform: ['pc', 'ps5'],
+    trailer: 'snoXnOo63xQ',
   },
   {
     id: 'rdr2',
@@ -95,6 +103,7 @@ export const GAMES: Game[] = [
     accent: '#882200',
     tag: 'CLASSIC',
     platform: ['pc', 'ps5', 'xbox'],
+    trailer: 'F63h3v9QV7w',
   },
   {
     id: 'baldursgate',
@@ -107,6 +116,7 @@ export const GAMES: Game[] = [
     accent: '#440088',
     tag: 'GOTY',
     platform: ['pc', 'ps5', 'xbox'],
+    trailer: 'C2ca6paV7i0',
   },
   {
     id: 'kingdomhearts',
@@ -119,6 +129,7 @@ export const GAMES: Game[] = [
     accent: '#3399ff',
     tag: 'CLASSIC',
     platform: ['pc', 'ps5', 'xbox'],
+    trailer: 'Nl2C6sT95to',
   },
   {
     id: 'batman',
@@ -131,6 +142,7 @@ export const GAMES: Game[] = [
     accent: '#222244',
     tag: 'EPIC',
     platform: ['pc', 'ps5', 'xbox'],
+    trailer: 'f74AQUeXfBY',
   },
   {
     id: 'bioshock',
@@ -143,6 +155,7 @@ export const GAMES: Game[] = [
     accent: '#cc4400',
     tag: 'CLASSIC',
     platform: ['pc', 'ps5', 'xbox'],
+    trailer: '6Adaq2MDsdo',
   },
   {
     id: 'sekiro',
@@ -155,6 +168,7 @@ export const GAMES: Game[] = [
     accent: '#881100',
     tag: 'GOTY',
     platform: ['pc', 'ps5', 'xbox'],
+    trailer: 'rXMX4YJ7Lks',
   },
 ]
 

@@ -1,10 +1,12 @@
 import { useStore } from '../../hooks/useStore'
+import { useShallow } from 'zustand/react/shallow'
 import { GAMES } from '../../data/games'
 
-const SHELF_GAMES = GAMES.slice(0, 9)
+const SHELF_GAME_COUNT = 9
+const SHELF_GAMES = GAMES.slice(0, SHELF_GAME_COUNT)
 
 export default function ShelfModal() {
-  const { shelfFocus, unfocusShelf, addToCart, owned, cart } = useStore()
+  const { shelfFocus, unfocusShelf, addToCart, owned, cart } = useStore(useShallow(s => ({ shelfFocus: s.shelfFocus, unfocusShelf: s.unfocusShelf, addToCart: s.addToCart, owned: s.owned, cart: s.cart })))
   if (!shelfFocus) return null
 
   return (

@@ -157,3 +157,17 @@ describe('other actions', () => {
     expect(filterOpen).toBe(false)
   })
 })
+
+describe('nearby setters (called every frame by Player)', () => {
+  it('do not notify listeners when the value is unchanged', () => {
+    const listener = vi.fn()
+    const unsub = useStore.subscribe(listener)
+    useStore.getState().setNearbyGame(GAMES[0])
+    useStore.getState().setNearbyGame(GAMES[0])
+    useStore.getState().setNearbyCounter(false)
+    useStore.getState().setNearbyShelf(null)
+    unsub()
+    expect(listener).toHaveBeenCalledTimes(1)
+    expect(useStore.getState().nearbyGame).toBe(GAMES[0])
+  })
+})
