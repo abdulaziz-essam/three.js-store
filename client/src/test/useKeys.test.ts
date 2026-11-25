@@ -1,4 +1,5 @@
-import { getDirectionInput } from '../hooks/useKeys'
+import { renderHook, act } from '@testing-library/react'
+import { getDirectionInput, useKeys } from '../hooks/useKeys'
 
 describe('getDirectionInput', () => {
   it('empty keys — all false', () => {
@@ -93,5 +94,22 @@ describe('getDirectionInput', () => {
     const result = getDirectionInput({ KeyW: false, KeyS: false })
     expect(result.up).toBeFalsy()
     expect(result.down).toBeFalsy()
+  })
+})
+
+describe('useKeys', () => {
+  it('tracks held keys', () => {
+    const { result } = renderHook(() => useKeys())
+    act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW' })) })
+    expect(result.current.current.KeyW).toBe(true)
+    act(() => { window.dispatchEvent(new KeyboardEvent('keyup', { code: 'KeyW' })) })
+    expect(result.current.current.KeyW).toBe(false)
+  })
+
+  it('releases every key when the window loses focus (no runaway walking)', () => {
+    const { result } = renderHook(() => useKeys())
+    act(() => { window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyW' })) })
+    act(() => { window.dispatchEvent(new Event('blur')) })
+    expect(result.current.current.KeyW).toBeFalsy()
   })
 })

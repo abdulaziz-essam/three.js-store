@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useKeys } from '../../hooks/useKeys'
@@ -9,7 +9,10 @@ import { usePlayerKeyboard } from '../../hooks/usePlayerKeyboard'
 import { checkProximity } from '../../hooks/useProximity'
 import { TVS, type Seat } from '../../data/storeLayout'
 import CharacterMesh from './CharacterMesh'
-import { resolveCollisions, lerp, getMovementVector } from './playerLogic'
+import {
+  resolveCollisions, lerp, getMovementVector,
+  getCameraDistance, CAM_MAX_X, CAM_MAX_Y, CAM_MAX_Z, CAM_WALL_LIFT,
+} from './playerLogic'
 import {
   SPEED, ACCELERATION, FRICTION,
   CAM_DIST, CAM_HEIGHT, CAM_LERP_SPEED, CAM_SHELF_LERP, CAM_LOOK_AHEAD,
@@ -67,6 +70,13 @@ export default function Player() {
   const anyModalOpen = shopOpen || checkoutOpen || filterOpen || !!shelfFocus || !!watching
 
   useMouseLock({ camYawRef, locked: anyModalOpen })
+
+  // Opening any overlay stops the player: no leftover speed or held keys when it closes
+  useEffect(() => {
+    if (!anyModalOpen) return
+    velocityRef.current.set(0, 0, 0)
+    keys.current = {}
+  }, [anyModalOpen, keys])
   usePlayerKeyboard({ groupRef, camYawRef, velocityRef })
 
   useFrame((_, delta) => {
@@ -132,9 +142,18 @@ export default function Player() {
     }
 
     // ── Camera follow ──
-    camera.position.x = lerp(camera.position.x, playerPos.x + Math.sin(camYawRef.current) * CAM_DIST, CAM_LERP_SPEED)
-    camera.position.y = lerp(camera.position.y, playerPos.y + CAM_HEIGHT,                              CAM_LERP_SPEED)
-    camera.position.z = lerp(camera.position.z, playerPos.z + Math.cos(camYawRef.current) * CAM_DIST, CAM_LERP_SPEED)
+    // Pull the camera in only as far as the walls require, and lift it as it comes in,
+    // so near a wall it looks down over the player instead of clipping outside.
+    const dirX = Math.sin(camYawRef.current)
+    const dirZ = Math.cos(camYawRef.current)
+    const camDist = getCameraDistance(playerPos.x, playerPos.z, dirX, dirZ)
+    const camLift = (CAM_DIST - camDist) * CAM_WALL_LIFT
+    camera.position.x = lerp(camera.position.x, playerPos.x + dirX * camDist,             CAM_LERP_SPEED)
+    camera.position.y = lerp(camera.position.y, playerPos.y + CAM_HEIGHT + camLift,       CAM_LERP_SPEED)
+    camera.position.z = lerp(camera.position.z, playerPos.z + dirZ * camDist,             CAM_LERP_SPEED)
+    camera.position.x = THREE.MathUtils.clamp(camera.position.x, -CAM_MAX_X, CAM_MAX_X)
+    camera.position.z = THREE.MathUtils.clamp(camera.position.z, -CAM_MAX_Z, CAM_MAX_Z)
+    camera.position.y = Math.min(camera.position.y, CAM_MAX_Y)
     camera.lookAt(playerPos.x, playerPos.y + CAM_LOOK_AHEAD, playerPos.z)
 
     // ── Proximity checks ──

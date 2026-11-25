@@ -15,7 +15,9 @@ interface UseMouseLockOptions {
 export function useMouseLock({ camYawRef, locked }: UseMouseLockOptions) {
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
-      if (!locked) camYawRef.current -= e.movementX * CAM_SENSITIVITY
+      // Without pointer lock the mouse is being used for the UI (buttons, panels):
+      // turning the camera then would silently change which way W/A/S/D go.
+      if (!locked && document.pointerLockElement) camYawRef.current -= e.movementX * CAM_SENSITIVITY
     }
     const onBodyClick = () => {
       // While watching a trailer the YouTube player needs normal mouse events

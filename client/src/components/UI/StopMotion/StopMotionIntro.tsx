@@ -3,7 +3,7 @@ import { useStore } from '../../../hooks/useStore'
 import './StopMotion.css'
 
 /** Stop-motion store tour rendered in Blender (blender/stopmotion/). */
-export const INTRO_VIDEO_URL = '/intro/pixel_vault_stopmotion.mp4'
+export const INTRO_VIDEO_URL = '/intro/aek_store_intro.mp4'
 
 /**
  * Plays the stop-motion tour full-screen when the site opens, while the 3D store

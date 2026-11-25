@@ -1,3 +1,4 @@
+import { DISPLAY_SLOTS } from '../data/storeLayout'
 import * as THREE from 'three'
 import { resolveCollisions, lerp, getMovementVector } from '../components/Character/playerLogic'
 // playerLogic.ts also imports from hooks/useKeys which is fine
@@ -61,8 +62,9 @@ describe('resolveCollisions', () => {
   })
 
   it('position overlapping a display pedestal — pushed out', () => {
-    // Spider-Man 2 pedestal at (-5.4, 3.5), collider half-size 0.6
-    const pos = new THREE.Vector3(-5.4, 0, 3.5 + 0.8)
+    // Spider-Man 2 pedestal, collider half-size 0.6
+    const [px, , pz] = DISPLAY_SLOTS.spiderman
+    const pos = new THREE.Vector3(px, 0, pz + 0.8)
     const vel = new THREE.Vector3(0, 0, -1)
     resolveCollisions(pos, vel)
     expect(pos.z).toBeCloseTo(3.5 + 0.95)
@@ -150,5 +152,35 @@ describe('getMovementVector', () => {
     const dir2 = getMovementVector({ ArrowUp: true }, 0)
     expect(dir1.x).toBeCloseTo(dir2.x, 5)
     expect(dir1.z).toBeCloseTo(dir2.z, 5)
+  })
+})
+
+describe('getCameraDistance (camera stays inside the store)', () => {
+  it('uses the full follow distance in the middle of the store', async () => {
+    const { getCameraDistance } = await import('../components/Character/playerLogic')
+    expect(getCameraDistance(0, 0, 0, 1)).toBe(5)
+  })
+
+  it('pulls the camera in when the player backs up to the entrance wall', async () => {
+    const { getCameraDistance } = await import('../components/Character/playerLogic')
+    // store is 34 deep: inner camera limit z = 17 - 0.35
+    expect(getCameraDistance(0, 16.4, 0, 1)).toBeCloseTo(0.25)
+  })
+
+  it('pulls the camera in against a side wall', async () => {
+    const { getCameraDistance } = await import('../components/Character/playerLogic')
+    expect(getCameraDistance(-10, 0, -1, 0)).toBeCloseTo(1.65)
+  })
+})
+
+describe('display rows', () => {
+  it('each section spreads its games across the whole row', async () => {
+    const { ROW_SECTIONS, DISPLAY_SLOTS: slots, ROW_HALF_WIDTH } = await import('../data/storeLayout')
+    for (const row of ROW_SECTIONS) {
+      const xs = row.ids.map(id => slots[id][0])
+      expect(Math.min(...xs)).toBeLessThan(-ROW_HALF_WIDTH / 2)
+      expect(Math.max(...xs)).toBeGreaterThan(ROW_HALF_WIDTH / 2)
+      row.ids.forEach(id => expect(slots[id][2]).toBe(row.z))
+    }
   })
 })

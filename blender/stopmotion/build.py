@@ -36,32 +36,30 @@ def walk(p0, p1, k, n, k0=0):
 def arrive(k, n):                 # turn toward the door, doors slide open, step inside
     if k < 4:
         return ((-0.3, -19.8, 0), -math.pi / 2 + (k / 3) * (math.pi / 2), "stand", 0)
-    return walk((-0.3, -19.8, 0), (0.0, -16.0, 0), k, n, k0=4)
+    return walk((-0.3, -19.8, 0), (0.3, -8.4, 0), k, n, k0=4)
 
 SHOTS = [
-    dict(title="AEK STORE", sub="A STOP-MOTION TOUR", accent=(0.80, 0.0, 0.0), frames=44, exposure=0.6,
+    # outside: the street, the AEK STORE sign, a customer walks up
+    dict(title="AEK STORE", sub="VIDEO GAME STORE", accent=(0.80, 0.0, 0.0), frames=44, exposure=0.6,
          a=((-7.0, -29.2, 1.35), (-1.5, -17, 2.4)), b=((-4.2, -28.4, 1.55), (0.3, -17, 2.5)),
          cust=lambda k, n: walk((-5.6, -19.8, 0), (-0.3, -19.8, 0), k, n)),
-    dict(title=None, frames=38, exposure=0.6, doors=(8, 14),
-         a=((1.9, -23.4, 1.25), (0.0, -17, 1.6)), b=((0.9, -21.4, 1.35), (0, -15, 1.5)),
+    # doors slide open; the camera follows the customer through them and into the store
+    dict(title="WELCOME IN", sub="OPEN LATE, EVERY NIGHT", accent=(0.0, 0.93, 1.0), frames=62,
+         exposure=0.5, doors=(8, 14), card_at=40,
+         a=((0.7, -23.0, 1.45), (0.0, -15, 1.55)), b=((0.0, -12.3, 1.8), (0, 2, 1.4)),
          cust=arrive),
-    dict(title="STEP INSIDE", sub="OPEN LATE, EVERY NIGHT", accent=(0.0, 0.93, 1.0), frames=34,
-         a=((-0.5, -16.5, 1.5), (0, 0, 1.5)), b=((-0.4, -13.6, 1.75), (0, 2, 1.4)),
-         cust=lambda k, n: walk((0.3, -13.6, 0), (0.3, -8.8, 0), k, n)),
-    dict(title="NEW & HOT", sub="FRESH DROPS, FRONT AND CENTER", accent=(1.0, 0.8, 0.0), frames=32,
-         a=((-6.6, -7.8, 1.8), (-5.6, -3.5, 1.7)), b=((6.6, -7.8, 1.8), (5.6, -3.5, 1.7)),
-         cust=lambda k, n: ((0.0, -4.75, 0), facing(1.8, 1.25), "look", 0)),
-    dict(title="TOP RATED", sub="ELDEN RING - BALDUR'S GATE 3 - SEKIRO", accent=(0.80, 0.0, 0.0), frames=32,
-         a=((6.4, -0.9, 1.7), (5.4, 2.0, 1.8)), b=((-6.4, -0.9, 1.7), (-5.4, 2.0, 1.8))),
-    dict(title="GENRE WALLS", sub="ACTION - RPG - ADVENTURE - SHOOTER", accent=(0.0, 0.33, 0.8), frames=32,
-         a=((-7.6, -7.0, 1.7), (-11.5, -4.5, 1.3)), b=((-7.6, 7.5, 1.7), (-11.5, 10.0, 1.3)),
-         cust=lambda k, n: walk((-10.2, -3.0, 0), (-10.2, 9.5, 0), k, n)),   # browsing along the shelves
-    dict(title="PLAY ZONE", sub="GRAB A SEAT, WATCH A TRAILER", accent=(0.0, 0.93, 1.0), frames=32,
-         a=((-1.8, 6.0, 1.7), (-5.2, 16.5, 1.7)), b=((-3.4, 10.6, 1.9), (-6.2, 16.5, 1.9)),
-         cust=lambda k, n: ((-6.3, 14.0, 0.45 + 0.05 - 0.875), 0.0, "sit", 0)),   # on a beanbag at the left TV
-    dict(title="CHECKOUT", sub="PAY UP, PLAY ON", accent=(1.0, 0.8, 0.0), frames=28,
-         a=((2.6, -7.6, 1.9), (8, -12.5, 1.0)), b=((4.4, -9.8, 1.6), (8, -12.5, 1.0)),
-         cust=lambda k, n: ((6.5, -12.5, 0), facing(1, 0), "pay", 0)),
+    # the three main sections, one row each
+    dict(title="NEW & HOT", sub="FRESH DROPS", accent=(1.0, 0.8, 0.0), frames=32,
+         a=((-9.4, -8.0, 1.8), (-8.4, -3.5, 1.7)), b=((9.4, -8.0, 1.8), (8.4, -3.5, 1.7)),
+         cust=lambda k, n: ((0.0, -4.75, 0), facing(2.8, 1.25), "look", 0)),
+    dict(title="TOP RATED", sub="CRITICS' FAVOURITES", accent=(0.80, 0.0, 0.0), frames=32,
+         a=((9.4, -1.0, 1.7), (8.4, 2.0, 1.8)), b=((-9.4, -1.0, 1.7), (-8.4, 2.0, 1.8))),
+    dict(title="CLASSICS", sub="TIMELESS GAMES", accent=(0.0, 0.33, 0.8), frames=32,
+         a=((-9.4, 4.4, 1.8), (-8.4, 7.5, 1.7)), b=((9.4, 4.4, 1.8), (8.4, 7.5, 1.7))),
+    # best prices: close on the cheapest price tags (BioShock $14.99, Batman $19.99)
+    dict(title="BEST PRICES", sub="FROM $14.99", accent=(0.0, 0.85, 0.35), frames=32,
+         a=((6.3, -0.6, 1.25), (8.4, 2.6, 1.05)), b=((6.3, 5.2, 1.25), (8.4, 8.2, 1.05)),
+         cust=lambda k, n: ((10.2, 5.8, 0), facing(-1.8, 1.7), "look", 0)),
     dict(title="AEK STORE", sub="SEE YOU INSIDE", accent=(0.80, 0.0, 0.0), frames=44,
          a=((0, -6.0, 1.6), (0, 10, 1.5)),    b=((0, -15.6, 4.7), (0, 4, 0.6)),
          cust=lambda k, n: walk((1.0, -3.0, 0), (1.0, 2.0, 0), k, n)),
@@ -88,8 +86,8 @@ def load_font(path):
         return bpy.data.fonts.load(path, check_existing=True) if os.path.exists(path) else None
     except Exception:
         return None
-FONT_BOLD = load_font(r"C:\Windows\Fonts\courbd.ttf")
-FONT_REG  = load_font(r"C:\Windows\Fonts\cour.ttf") or FONT_BOLD
+FONT_BOLD = load_font(r"C:\Windows\Fonts\ariblk.ttf") or load_font(r"C:\Windows\Fonts\seguibl.ttf")
+FONT_REG  = load_font(r"C:\Windows\Fonts\bahnschrift.ttf") or FONT_BOLD
 
 # ── materials ───────────────────────────────────────────────────────────────
 def emit_mat(name, color, strength=1.0, alpha=None):
@@ -235,14 +233,15 @@ def _card_plane(name, w, h, mat, parent, x, y, z):
 
 for i, (root, s) in enumerate(cards):
     if root is None: continue
-    cw = max(0.115 * len(s["title"]) * 0.62 + 0.14, 0.042 * len(s["sub"]) * 0.62 + 0.1)
+    cw = max(0.115 * len(s["title"]) * 0.8 + 0.16, 0.042 * len(s["sub"]) * 0.62 + 0.12)
     ch = 0.25
     _card_plane(f"SM_Card_{i}_Shadow", cw, ch, emit_mat(f"SM_Accent_{i}", s["accent"], 1.0), root, 0.018, -0.018, -0.002)
     _card_plane(f"SM_Card_{i}_Border", cw + 0.012, ch + 0.012, ink, root, 0, 0, -0.001)
     _card_plane(f"SM_Card_{i}_Paper", cw, ch, paper, root, 0, 0, 0)
     t = text_obj(f"SM_Card_{i}_Title", s["title"], 0.115, ink, FONT_BOLD, root)
     t.location = (0, 0.035, 0.001)
-    st = text_obj(f"SM_Card_{i}_Sub", s["sub"], 0.042, subink, FONT_BOLD, root)
+    st = text_obj(f"SM_Card_{i}_Sub", s["sub"], 0.042, subink, FONT_REG, root)
+    st.data.space_character = 1.25
     st.location = (0, -0.068, 0.001)
 
 # ── real cover art (the website applies these at runtime; the .blend only has a few) ──
@@ -347,6 +346,16 @@ def hide_always(o):
 exterior.build(link, hide_always, cover_image, FONT_BOLD)
 mk = lambda name, size, loc, mat, parent=None: exterior.make_box(link, name, size, loc, mat, parent=parent)
 cust = customer.Customer(link, mk, exterior.pbr)
+
+# Section row strips, same as the website's ShopFloor RowStrip (three z -> blender -y)
+ROW_STRIPS = [(-3.5, (1.0, 0.8, 0.0)), (2.0, (1.0, 0.16, 0.16)), (7.5, (0.16, 0.48, 1.0))]
+strip_mat = exterior.pbr("SM_RowStrip", (0.035, 0.035, 0.045), rough=0.6, metal=0.2)
+for y, col in ROW_STRIPS:
+    exterior.box_span(link, f"SM_Row_{y}", -10.6, 10.6, y - 1.3, y + 1.3, 0.0, 0.006, strip_mat)
+    edge = exterior.neon(f"SM_RowEdge_{y}", col, 4)
+    for side in (-1, 1):
+        e0 = y + side * 1.3
+        exterior.box_span(link, f"SM_RowEdge_{y}_{side}", -10.6, 10.6, min(e0, e0 - side * 0.06), max(e0, e0 - side * 0.06), 0.0, 0.008, edge)
 DOOR_PARTS = {-1: ["Door_0_Glass", "Door_0_Frame", "Door_0_Handle"], 1: ["Door_1_Glass", "Door_1_Frame", "Door_1_Handle"]}
 DOOR_HOME = {nm: bpy.data.objects[nm].location.x for parts in DOOR_PARTS.values() for nm in parts}
 def set_doors(open_t, f):
@@ -428,7 +437,7 @@ for i, s in enumerate(SHOTS):
             continue
 
         # card: appears after the cut, pops in, then "boils" on twos
-        card_k = k - (CUT if i > 0 else 4)
+        card_k = k - s.get("card_at", CUT if i > 0 else 4)
         if card_k == 0:
             card_visible(root, True, f)
         if card_k >= 0:

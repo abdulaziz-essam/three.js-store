@@ -10,15 +10,22 @@ export const BUILDING = { width: 24, height: 5.5, depth: 34 }
 const HW = BUILDING.width / 2
 const HD = BUILDING.depth / 2
 
-/** Center-aisle display pedestals, keyed by game id (3 themed rows of 4). */
-const ROW_X = [-5.4, -1.8, 1.8, 5.4]
-const ROWS: { z: number; ids: string[] }[] = [
-  { z:  3.5, ids: ['spiderman', 'cyberpunk', 'tlou2', 'gow'] },              // NEW & HOT
-  { z: -2.0, ids: ['eldenring', 'baldursgate', 'sekiro', 'batman'] },        // TOP RATED
-  { z: -7.5, ids: ['witcher3', 'rdr2', 'kingdomhearts', 'bioshock'] },       // CLASSICS
+/**
+ * Display rows: each section owns a whole row across the store, from the left wall
+ * shelves to the right ones, with the centre aisle running through the middle.
+ */
+const ROW_X = [-8.4, -2.8, 2.8, 8.4]
+export interface RowSection { id: string; label: string; z: number; accent: string; ids: string[] }
+export const ROW_SECTIONS: RowSection[] = [
+  { id: 'new-hot',   label: 'NEW & HOT', z:  3.5, accent: '#ffcc00', ids: ['spiderman', 'cyberpunk', 'tlou2', 'gow'] },
+  { id: 'top-rated', label: 'TOP RATED', z: -2.0, accent: '#ff2a2a', ids: ['eldenring', 'baldursgate', 'sekiro', 'batman'] },
+  { id: 'classics',  label: 'CLASSICS',  z: -7.5, accent: '#2a7bff', ids: ['witcher3', 'rdr2', 'kingdomhearts', 'bioshock'] },
 ]
+/** Half-width of a row's floor strip: stops just short of the wall shelves. */
+export const ROW_HALF_WIDTH = HW - 1.4
+export const ROW_DEPTH = 2.6
 export const DISPLAY_SLOTS: Record<string, Vec3> = Object.fromEntries(
-  ROWS.flatMap(row => row.ids.map((id, i) => [id, [ROW_X[i], 0, row.z] as Vec3])),
+  ROW_SECTIONS.flatMap(row => row.ids.map((id, i) => [id, [ROW_X[i], 0, row.z] as Vec3])),
 )
 
 /** Wall shelves: 4 per side wall, each 3 m wide. */
